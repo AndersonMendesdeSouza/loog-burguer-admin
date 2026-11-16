@@ -151,14 +151,6 @@ export function Config() {
 
     if (savingSettings) return;
 
-    if (openingTime >= closingTime) {
-      setSettingsFeedback({
-        type: "error",
-        message: "O horário de abertura deve ser menor que o de fechamento.",
-      });
-      return;
-    }
-
     try {
       setSavingSettings(true);
       setSettingsFeedback(null);

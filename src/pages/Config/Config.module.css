@@ -362,7 +362,7 @@
 }
 
 .input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: brightness(0) invert(1);
   opacity: 1;
 }
 
