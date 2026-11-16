@@ -1,161 +1,86 @@
 .sidebar {
-  width: 240px;
-  height: 100vh;
-  background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
-  color: #fff;
-  padding: 20px;
   display: flex;
+  flex: 0 0 224px;
+  width: 224px;
+  height: 100dvh;
   flex-direction: column;
   justify-content: space-between;
+  gap: 24px;
+  overflow-y: auto;
+  padding: 24px 14px 18px;
+  border-right: 1px solid var(--border-color);
+  background: var(--surface-muted);
+  color: var(--text-primary);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 10px;
+  margin: 0 6px 30px;
 }
 
 .brandIcon {
   width: 40px;
   height: 40px;
-  background: #c0b26c;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
+  color: var(--highlight);
+  stroke-width: 1.6;
 }
 
-.brandTitle {
-  font-size: 14px;
-  letter-spacing: 0.5px;
-}
+.brandTitle { display: block; font-size: 25px; font-weight: 800; line-height: 1; letter-spacing: -0.8px; }
+.brandSubtitle { display: block; margin-top: 6px; color: var(--highlight); font-size: 8px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+.menu, .footer { display: flex; flex-direction: column; gap: 6px; }
 
-.brandSubtitle {
-  display: block;
-  font-size: 12px;
-  color: #9e9e9e;
-}
-
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  color: #d5d5d5;
-  text-decoration: none;
-  border-radius: 10px;
-  font-size: 14px;
+.link, .active, .linkButton {
   position: relative;
-}
-
-.link:hover {
-  background-color: rgba(255, 212, 0, 0.08);
-  color: #ffd400;
-}
-
-.active {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 212, 0, 0.25),
-    rgba(255, 212, 0, 0.05)
-  );
-  color: #ffd400;
-  border-radius: 10px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.buttonExit {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 10px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.25),
-    rgba(255, 0, 0, 0.275)
-  );
-  color: #ffffff;
-  border-radius: 10px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.linkButton {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  color: #d5d5d5;
-  text-decoration: none;
-  border-radius: 10px;
-  font-size: 14px;
-  position: relative;
-}
-
-.linkButton:hover {
-  background-color: rgba(255, 0, 0, 0.08);
-  color: #ff0000;
-}
-.icon {
-  font-size: 22px;
-}
-
-.badge {
-  margin-left: auto;
-  background-color: #ffd400;
-  color: #000;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 999px;
-}
-
-.footer {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.user {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #ffd400;
-  color: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  background: transparent;
+  font: inherit;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
 }
 
-.user strong {
-  font-size: 13px;
+.link:hover { border-color: var(--border-color); background: var(--bg-secondary); color: var(--text-primary); }
+.active { border-color: var(--highlight); background: var(--highlight); color: #211303; font-weight: 700; }
+.icon { width: 18px; height: 18px; flex-shrink: 0; }
+.badge { margin-left: auto; min-width: 20px; padding: 2px 6px; border-radius: 6px; background: rgba(255, 208, 0, 0.12); color: var(--highlight); text-align: center; font-size: 10px; font-weight: 700; }
+.active .badge { background: rgba(22, 11, 7, 0.12); color: #211303; }
+.linkButton { color: #ff9b8d; }
+.linkButton:hover { border-color: rgba(255, 142, 135, 0.2); background: rgba(255, 142, 135, 0.06); }
+.footer { margin-top: auto; }
+.user { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 16px 6px 0; border-top: 1px solid var(--border-color); }
+.avatar { display: grid; place-items: center; flex: 0 0 34px; height: 34px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--bg-secondary); color: var(--highlight); font-size: 11px; font-weight: 700; }
+.user > div:last-child { min-width: 0; }
+.user strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 600; }
+.user span { display: block; margin-top: 3px; color: var(--text-muted); font-size: 10px; }
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .sidebar { flex-basis: 76px; width: 76px; padding-inline: 10px; }
+  .brand { margin-inline: 7px; }
+  .brand > div, .link > span:not(.badge), .active > span:not(.badge), .linkButton > span, .user > div:last-child { display: none; }
+  .link, .active, .linkButton { justify-content: center; padding-inline: 10px; }
+  .badge { position: absolute; top: 2px; right: 0; min-width: 14px; padding: 0 3px; font-size: 8px; }
+  .user { padding-inline: 10px; }
 }
 
-.user span {
-  display: block;
-  font-size: 11px;
-  color: #9e9e9e;
+@media (max-width: 760px) {
+  .sidebar { flex: 0 0 64px; flex-direction: row; width: 100%; height: 64px; gap: 6px; overflow: hidden; padding: 6px; border-right: 0; border-bottom: 1px solid var(--border-color); }
+  .sidebar > div:first-child { flex: 1; min-width: 0; overflow-x: auto; }
+  .brand, .user { display: none; }
+  .menu { flex-direction: row; width: max-content; height: 100%; gap: 3px; }
+  .link, .active { flex-direction: column; justify-content: center; min-width: 58px; min-height: 50px; gap: 3px; padding: 6px 8px; font-size: 9px; }
+  .badge { position: absolute; top: 1px; right: 1px; min-width: 13px; padding: 0 3px; font-size: 8px; }
+  .footer { flex-direction: row; align-items: center; margin-top: 0; gap: 2px; }
+  .footer .link, .footer .active, .linkButton { min-width: 34px; min-height: 42px; padding: 8px; }
+  .footer .link > span, .footer .active > span, .linkButton > span { display: none; }
 }

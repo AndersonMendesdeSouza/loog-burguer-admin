@@ -1,12 +1,12 @@
 .card {
   width: 100%;
   max-width: 100%;
-  background: hsl(0, 0%, 17%);
-  border-radius: 18px;
+  background: var(--bg-secondary);
+  border-radius: 14px;
   padding: 14px;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
 }
 
 .header {
@@ -16,10 +16,20 @@
   gap: 10px;
 }
 
+.left {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .orderNumber {
-  color: #ffd400;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--highlight);
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.2px;
   line-height: 1;
 }
@@ -28,16 +38,16 @@
   margin-top: 4px;
   font-size: 14px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
 }
 
 .timePill {
   background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   padding: 6px 10px;
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 11px;
   min-width: auto;
   text-align: center;
@@ -61,9 +71,9 @@
   margin-top: 10px;
   padding: 5px 9px;
   border: 1px solid rgba(255, 212, 0, 0.25);
-  border-radius: 8px;
+  border-radius: 10px;
   background: rgba(255, 212, 0, 0.08);
-  color: #ffd400;
+  color: var(--highlight);
   font-size: 12px;
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -76,7 +86,7 @@
 }
 
 .tableBadge strong {
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .item {
@@ -95,9 +105,9 @@
 }
 
 .itemText {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .moreItems {
@@ -108,7 +118,7 @@
   border: 1px solid rgba(255, 212, 0, 0.18);
   border-radius: 999px;
   background: rgba(255, 212, 0, 0.08);
-  color: #ffd400;
+  color: var(--highlight);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.4;
@@ -116,7 +126,7 @@
 
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-hover);
   margin: 12px 0 10px 0;
 }
 
@@ -131,36 +141,16 @@
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.2px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
-
-
-/* 
-.cardWrapper_yellow {
-  border-left: 3px solid rgba(255, 212, 0, 0.9);
-  box-shadow: 1px 3px 10px rgba(255, 212, 0, 0.9);
-}
-
-.cardWrapper_blue {
-  border-left: 3px solid rgba(59, 130, 246, 0.9);
-    box-shadow: 1px 3px 10px rgba(59, 130, 246, 0.9);
-}
-
-.cardWrapper_orange {
-  border-left: 3px solid rgba(249, 115, 22, 0.95);
-    box-shadow: 1px 3px 10px rgba(249, 115, 22, 0.95);
-
-  
-} */
-
 
 .btnNew  {
   border: none;
   cursor: pointer;
-  background: #ffd400;
-  box-shadow: 1px 3px 10px rgba(255, 212, 0, 0.9);
-  color: #ffffff;
-  font-weight: 900;
+  background: var(--highlight);
+  box-shadow: none;
+  color: #211303;
+  font-weight: 700;
   font-size: 12px;
   padding: 8px 12px;
   border-radius: 999px;
@@ -168,14 +158,14 @@
   align-items: center;
   gap: 8px;
   justify-content: center;
-  box-shadow: 0px 1px 1px rgba(255, 212, 0, 0.9);;
+  box-shadow: none;
 }
 .btnPreparing {
   border: none;
   cursor: pointer;
   background:  rgba(59, 130, 246, 0.9);
-  color: #fafafa;
-  font-weight: 900;
+  color: var(--text-primary);
+  font-weight: 700;
   font-size: 12px;
   padding: 8px 12px;
   border-radius: 999px;
@@ -189,8 +179,8 @@
   border: none;
   cursor: pointer;
   background: rgba(249, 115, 22, 0.95);
-  color: #ffffff;
-  font-weight: 900;
+  color: var(--text-primary);
+  font-weight: 700;
   font-size: 12px;
   padding: 8px 12px;
   border-radius: 999px;
@@ -198,7 +188,7 @@
   align-items: center;
   gap: 8px;
   justify-content: center;
-  box-shadow: 0px 1px 1px  rgba(249, 115, 22, 0.95);
+  box-shadow: none;
 }
 
 .acceptBtn:active {

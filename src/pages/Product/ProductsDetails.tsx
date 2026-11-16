@@ -30,6 +30,7 @@ import type {
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 import { API_BASE_URL } from "../../service/api";
+import { currencyToInput, formatCurrencyInput, parseCurrencyInput } from "../../utils/currency";
 
 type Media = {
   id: string;
@@ -82,19 +83,6 @@ function currencyBRL(value: number) {
     style: "currency",
     currency: "BRL",
   });
-}
-
-function toDot(value: string) {
-  return value.replace(/\./g, "").replace(",", ".").trim();
-}
-
-function toCurrencyInput(value?: string | number | null) {
-  if (value === undefined || value === null || value === "") return "";
-  return String(value).replace(".", ",");
-}
-
-function parseDecimal(value: string) {
-  return Number(toDot(value));
 }
 
 function getImageUrl(image: ImageResponse) {
@@ -218,8 +206,8 @@ export function ProductsDetails() {
         setCategory(
           (data.category as ProductCategoryEnum) || ProductCategoryEnum.FOOD,
         );
-        setPrice(toCurrencyInput(data.price));
-        setPromoPrice(toCurrencyInput(data.promoPrice));
+        setPrice(currencyToInput(data.price));
+        setPromoPrice(currencyToInput(data.promoPrice));
         setStock(String(data.stock ?? 0));
         setAddons(
           (data.addons || []).map((addon) => ({
@@ -264,8 +252,8 @@ export function ProductsDetails() {
     [media, primaryId],
   );
 
-  const parsedPrice = parseDecimal(price);
-  const parsedPromoPrice = promoPrice.trim() ? parseDecimal(promoPrice) : null;
+  const parsedPrice = parseCurrencyInput(price);
+  const parsedPromoPrice = promoPrice.trim() ? parseCurrencyInput(promoPrice) : null;
   const hasPromoPrice =
     parsedPromoPrice !== null && Number.isFinite(parsedPromoPrice);
   const previewPrice = hasPromoPrice
@@ -346,7 +334,7 @@ export function ProductsDetails() {
   const addAddon = () => {
     const cleanName = addonName.trim();
     const cleanDescription = addonDescription.trim();
-    const priceNumber = parseDecimal(addonPrice);
+    const priceNumber = parseCurrencyInput(addonPrice);
     const nextErrors: AddonErrors = {};
 
     if (!cleanName) nextErrors.name = "Informe o nome do adicional";
@@ -413,7 +401,7 @@ export function ProductsDetails() {
 
   const validate = (): FieldErrors => {
     const next: FieldErrors = {};
-    const priceNumber = parseDecimal(price);
+    const priceNumber = parseCurrencyInput(price);
 
     if (!media.length) next.media = "Adicione ao menos uma imagem";
     if (!name.trim()) next.name = "Preencha o nome do produto";
@@ -425,7 +413,7 @@ export function ProductsDetails() {
     }
 
     if (promoPrice.trim()) {
-      const promoNumber = parseDecimal(promoPrice);
+      const promoNumber = parseCurrencyInput(promoPrice);
       if (!Number.isFinite(promoNumber) || promoNumber < 0) {
         next.promoPrice = "Preço promocional inválido";
       } else if (Number.isFinite(priceNumber) && promoNumber > priceNumber) {
@@ -466,8 +454,8 @@ export function ProductsDetails() {
       name: name.trim(),
       description: description.trim(),
       category,
-      price: parseDecimal(price),
-      promoPrice: promoPrice.trim() ? parseDecimal(promoPrice) : undefined,
+      price: parseCurrencyInput(price),
+      promoPrice: promoPrice.trim() ? parseCurrencyInput(promoPrice) : undefined,
       isActive,
       stockEnabled,
       stock: stockEnabled ? Number(stock || 0) : 0,
@@ -855,15 +843,16 @@ export function ProductsDetails() {
 
           <div className={styles.form}>
             <div className={fieldClass("name")} data-field="name">
-              <label className={styles.label}>Nome do produto</label>
+              <label className={styles.label} htmlFor="product-name">Nome do produto</label>
               <input
+                  id="product-name"
                 className={inputClass("name")}
                 value={name}
                 onChange={(event) => {
                   setName(event.target.value);
                   clearFieldError("name");
                 }}
-                placeholder="Ex: Ambug duplo"
+                placeholder="Ex.: Hambúrguer duplo"
               />
               {submitted && errors.name ? (
                 <div className={styles.fieldError}>{errors.name}</div>
@@ -872,8 +861,9 @@ export function ProductsDetails() {
 
             <div className={styles.row2}>
               <div className={fieldClass("category")} data-field="category">
-                <label className={styles.label}>Categoria</label>
+                <label className={styles.label} htmlFor="product-category">Categoria</label>
                 <select
+                  id="product-category"
                   className={selectClass("category")}
                   value={category}
                   onChange={(event) => {
@@ -916,8 +906,9 @@ export function ProductsDetails() {
             </div>
 
             <div className={fieldClass("description")} data-field="description">
-              <label className={styles.label}>Descrição detalhada</label>
+              <label className={styles.label} htmlFor="product-description">Descrição detalhada</label>
               <textarea
+                  id="product-description"
                 className={textareaClass("description")}
                 value={description}
                 onChange={(event) => {
@@ -948,37 +939,39 @@ export function ProductsDetails() {
 
           <div className={styles.form}>
             <div className={fieldClass("price")} data-field="price">
-              <label className={styles.label}>Preço base</label>
+              <label className={styles.label} htmlFor="product-price">Preço base</label>
               <div className={styles.moneyInput}>
                 <span className={styles.moneyPrefix}>R$</span>
                 <input
+                  id="product-price"
                   className={inputClass("price")}
                   value={price}
                   onChange={(event) => {
-                    setPrice(event.target.value);
+                    setPrice(formatCurrencyInput(event.target.value));
                     clearFieldError("price");
                   }}
-                  inputMode="decimal"
+                  inputMode="numeric"
                   placeholder="0,00"
                 />
               </div>
               {submitted && errors.price ? (
                 <div className={styles.fieldError}>{errors.price}</div>
-              ) : null}
+              ) : <div className={styles.help}>Digite 3500 para R$ 35,00.</div>}
             </div>
 
             <div className={fieldClass("promoPrice")} data-field="promoPrice">
-              <label className={styles.label}>Preço promocional</label>
+              <label className={styles.label} htmlFor="product-promoPrice">Preço promocional</label>
               <div className={styles.moneyInput}>
                 <span className={styles.moneyPrefix}>R$</span>
                 <input
+                  id="product-promoPrice"
                   className={`${inputClass("promoPrice")} ${styles.inputMuted}`}
                   value={promoPrice}
                   onChange={(event) => {
-                    setPromoPrice(event.target.value);
+                    setPromoPrice(formatCurrencyInput(event.target.value));
                     clearFieldError("promoPrice");
                   }}
-                  inputMode="decimal"
+                  inputMode="numeric"
                   placeholder="0,00"
                 />
               </div>
@@ -1014,8 +1007,9 @@ export function ProductsDetails() {
 
             {stockEnabled ? (
               <div className={fieldClass("stock")} data-field="stock">
-                <label className={styles.label}>Estoque</label>
+                <label className={styles.label} htmlFor="product-stock">Estoque</label>
                 <input
+                  id="product-stock"
                   className={inputClass("stock")}
                   value={stock}
                   onChange={(event) => {
@@ -1056,8 +1050,9 @@ export function ProductsDetails() {
               className={`${styles.field} ${addonErrors.name ? styles.fieldInvalid : ""
                 }`}
             >
-              <label className={styles.label}>Nome do adicional</label>
+              <label className={styles.label} htmlFor="product-addonName">Nome do adicional</label>
               <input
+                  id="product-addonName"
                 className={`${styles.input} ${addonErrors.name ? styles.inputError : ""
                   }`}
                 value={addonName}
@@ -1073,8 +1068,9 @@ export function ProductsDetails() {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Descrição</label>
+              <label className={styles.label} htmlFor="product-addonDescription">Descrição</label>
               <input
+                  id="product-addonDescription"
                 className={styles.input}
                 value={addonDescription}
                 onChange={(event) => setAddonDescription(event.target.value)}
@@ -1086,18 +1082,19 @@ export function ProductsDetails() {
               className={`${styles.field} ${addonErrors.price ? styles.fieldInvalid : ""
                 }`}
             >
-              <label className={styles.label}>Preço</label>
+              <label className={styles.label} htmlFor="product-addonPrice">Preço</label>
               <div className={styles.moneyInput}>
                 <span className={styles.moneyPrefix}>R$</span>
                 <input
+                  id="product-addonPrice"
                   className={`${styles.input} ${addonErrors.price ? styles.inputError : ""
                     }`}
                   value={addonPrice}
                   onChange={(event) => {
-                    setAddonPrice(event.target.value);
+                    setAddonPrice(formatCurrencyInput(event.target.value));
                     setAddonErrors((prev) => ({ ...prev, price: undefined }));
                   }}
-                  inputMode="decimal"
+                  inputMode="numeric"
                   placeholder="0,00"
                 />
               </div>

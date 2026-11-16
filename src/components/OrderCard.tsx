@@ -68,7 +68,15 @@ export function OrderCard({
     <div className={styles.card} onClick={() => navigate(navigateTo)}>
       <div className={styles.header}>
         <div className={styles.left}>
-          <div className={styles.orderNumber}>{orderNumber}</div>
+          <button
+            className={styles.orderNumber}
+            type="button"
+            aria-label={`Ver pedido ${orderNumber}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              navigate(navigateTo);
+            }}
+          >{orderNumber}</button>
           <div className={styles.customerName}>{customerName}</div>
         </div>
 

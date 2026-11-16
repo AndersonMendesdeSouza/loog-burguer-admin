@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   FiGrid,
@@ -8,7 +8,7 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
-import { FileBarChart2Icon } from "lucide-react";
+import { FileBarChart2Icon, Hamburger } from "lucide-react";
 import { IoExitOutline } from "react-icons/io5";
 import { useAuth } from "../../contexts/AuthContext";
 import { useOrderCount } from "../../contexts/OrderCountContext";
@@ -32,6 +32,7 @@ export function Sidebar() {
   const { newOrders } = useOrderCount();
   const [adminUser, setAdminUser] = useState<UserResponseDto | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let active = true;
@@ -80,16 +81,17 @@ export function Sidebar() {
     <aside className={styles.sidebar}>
       <div>
         <div className={styles.brand}>
-          <div className={styles.brandIcon}>🍔</div>
+          <Hamburger className={styles.brandIcon} aria-hidden="true" />
           <div>
-            <strong className={styles.brandTitle}>BURGUER ADMIN</strong>
-            <span className={styles.brandSubtitle}>Gestão de Unidade</span>
+            <strong className={styles.brandTitle}>Burguer</strong>
+            <span className={styles.brandSubtitle}>Administração</span>
           </div>
         </div>
 
-        <nav className={styles.menu}>
+        <nav className={styles.menu} aria-label="Navegação administrativa">
           <NavLink
             to="/dashboard"
+            title="Painel"
             className={({ isActive }) =>
               isActive ? styles.active : styles.link
             }
@@ -100,8 +102,9 @@ export function Sidebar() {
 
           <NavLink
             to="/pedidos"
+            title="Pedidos"
             className={({ isActive }) =>
-              isActive ? styles.active : styles.link
+              isActive || location.pathname.startsWith("/orders-details") ? styles.active : styles.link
             }
           >
             <FiShoppingCart className={styles.icon} />
@@ -111,8 +114,9 @@ export function Sidebar() {
 
           <NavLink
             to="/produtos"
+            title="Produtos"
             className={({ isActive }) =>
-              isActive ? styles.active : styles.link
+              isActive || location.pathname.startsWith("/product-details") ? styles.active : styles.link
             }
           >
             <FiBox className={styles.icon} />
@@ -121,6 +125,7 @@ export function Sidebar() {
 
           <NavLink
             to="/clientes"
+            title="Clientes"
             className={({ isActive }) =>
               isActive ? styles.active : styles.link
             }
@@ -131,6 +136,7 @@ export function Sidebar() {
 
           <NavLink
             to="/relatorios"
+            title="Relatórios"
             className={({ isActive }) =>
               isActive ? styles.active : styles.link
             }
@@ -143,22 +149,22 @@ export function Sidebar() {
       <div className={styles.footer}>
         <NavLink
           to="/configuracoes"
+          title="Configurações"
           className={({ isActive }) => (isActive ? styles.active : styles.link)}
         >
           <FiSettings className={styles.icon} />
           <span>Configurações</span>
         </NavLink>
 
-        <NavLink
-          onClick={() => handleLogout()}
-          to={""}
-          className={({ isActive }) =>
-            isActive ? styles.buttonExit : styles.linkButton
-          }
+        <button
+          type="button"
+          onClick={handleLogout}
+          className={styles.linkButton}
+          title="Sair da conta"
         >
-          <IoExitOutline className={styles.icon} color="red" />
+          <IoExitOutline className={styles.icon} />
           <span>Sair</span>
-        </NavLink>
+        </button>
 
         <div className={styles.user}>
           <div className={styles.avatar}>

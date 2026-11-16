@@ -1,17 +1,15 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/layouts/DashboardLayout";
-import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { Orders } from "./pages/Orders/Orders";
 import { Products } from "./pages/Product/Products";
 import { ProductsDetails } from "./pages/Product/ProductsDetails";
 import OrderDetails from "./pages/Orders/OrdersDetails";
 import Login from "./pages/Login/Login";
 import { Customers } from "./pages/Customers/Customers";
-import { Reports } from "./pages/Reports/Reports";
 import { useAuth } from "./contexts/AuthContext";
 import { useOrderCount } from "./contexts/OrderCountContext";
 import { Config } from "./pages/Config/Config";
-import { useEffect, useRef } from "react";
+import { lazy, useEffect, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { OrderService } from "./service/order.service";
@@ -21,6 +19,9 @@ import {
 } from "./utils/notificationSound";
 
 const ORDER_POLLING_INTERVAL_MS = 10_000;
+
+const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard").then((module) => ({ default: module.Dashboard })));
+const Reports = lazy(() => import("./pages/Reports/Reports").then((module) => ({ default: module.Reports })));
 
 function showNewOrderAlert(newOrdersCount: number) {
   toast.success(

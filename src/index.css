@@ -1,17 +1,94 @@
+@font-face {
+  font-family: 'Yellowtail';
+  src: url('./assets/fonts/Yellowtail-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --font-primary: 'Poppins', sans-serif;
+  --bgPrimary: var(--bg-primary);
+  --bgSecondary: var(--bg-secondary);
+  --textPrimary: var(--text-primary);
+  --textSecondary: var(--text-secondary);
+  --text-muted: #aa978c;
+  --border-strong: rgba(183, 123, 91, 0.4);
+  --surface-hover: #2b1911;
+  --toastify-color-dark: var(--bg-secondary);
+  --toastify-text-color-dark: var(--text-primary);
+  --toastify-font-family: var(--font-primary);
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
-  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
-html, body {
+html, body, #root {
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
-  font-family: var(--font-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body {
   overflow: hidden;
-  background: #000; /* opcional */
+  font-family: var(--font-primary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--highlight);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input, select, textarea {
+  scroll-margin-block: 90px;
+}
+
+input::placeholder, textarea::placeholder {
+  opacity: 1;
+}
+
+select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+svg {
+  flex-shrink: 0;
+}
+
+@supports (-webkit-touch-callout: none) {
+  input:not([type='checkbox']):not([type='radio']), textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-enter='page'] { animation: page-enter 220ms ease-out; }
 }

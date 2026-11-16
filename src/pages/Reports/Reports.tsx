@@ -1,3 +1,4 @@
+import Colors from "../../themes/Colors";
 import { useEffect, useMemo, useState } from "react";
 import {
   Area,
@@ -76,7 +77,7 @@ const STATUS_LABELS: Record<OrderStatusEnum, string> = {
 };
 
 const STATUS_COLORS: Record<OrderStatusEnum, string> = {
-  RECEIVED: "#ffd400",
+  RECEIVED: Colors.Highlight.primary,
   KITCHEN_ACCEPTED: "#60a5fa",
   PREPARING: "#3b82f6",
   OUT_FOR_DELIVERY: "#fb923c",
@@ -95,7 +96,7 @@ const PAYMENT_LABELS: Record<PaymentMethodEnum, string> = {
 const PAYMENT_COLORS: Record<PaymentMethodEnum, string> = {
   CREDIT_CARD: "#60a5fa",
   DEBIT_CARD: "#4ade80",
-  PIX: "#ffd400",
+  PIX: Colors.Highlight.primary,
   CASH: "#fb923c",
 };
 
@@ -515,28 +516,28 @@ export function Reports() {
                     <AreaChart data={revenueByDay}>
                       <defs>
                         <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
-                          <stop offset="5%" stopColor="#ffd400" stopOpacity={0.36} />
-                          <stop offset="95%" stopColor="#ffd400" stopOpacity={0} />
+                          <stop offset="5%" stopColor={Colors.Highlight.primary} stopOpacity={0.36} />
+                          <stop offset="95%" stopColor={Colors.Highlight.primary} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                      <CartesianGrid stroke={Colors.Borders.primary} vertical={false} />
                       <XAxis
                         dataKey="sortDate"
                         tickFormatter={(value) => formatShortDate(`${value}T00:00:00`)}
-                        stroke="rgba(255,255,255,0.45)"
+                        stroke={Colors.Texts.secondary}
                         minTickGap={24}
                       />
                       <YAxis
-                        stroke="rgba(255,255,255,0.45)"
+                        stroke={Colors.Texts.secondary}
                         tickFormatter={(value) => formatChartCurrency(Number(value))}
                         width={72}
                       />
                       <Tooltip
                         contentStyle={{
-                          background: "#141414",
-                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: Colors.Background.secondary,
+                          border: `1px solid ${Colors.Borders.primary}`,
                           borderRadius: 8,
-                          color: "#fff",
+                          color: Colors.Texts.primary,
                         }}
                         formatter={(value) => formatCurrency(Number(value))}
                         labelFormatter={(value) =>
@@ -547,10 +548,10 @@ export function Reports() {
                         type="monotone"
                         dataKey="revenue"
                         name="Faturamento"
-                        stroke="#ffd400"
+                        stroke={Colors.Highlight.primary}
                         strokeWidth={3}
                         fill="url(#revenueGradient)"
-                        dot={{ r: 3, fill: "#ffd400" }}
+                        dot={{ r: 3, fill: Colors.Highlight.primary }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -586,10 +587,10 @@ export function Reports() {
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          background: "#141414",
-                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: Colors.Background.secondary,
+                          border: `1px solid ${Colors.Borders.primary}`,
                           borderRadius: 8,
-                          color: "#fff",
+                          color: Colors.Texts.primary,
                         }}
                       />
                     </PieChart>
@@ -625,25 +626,25 @@ export function Reports() {
               <div className={styles.barChart}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={paymentData} margin={{ top: 28, right: 20, bottom: 8 }}>
-                    <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <CartesianGrid stroke={Colors.Borders.primary} vertical={false} />
                     <XAxis
                       dataKey="label"
-                      stroke="rgba(255,255,255,0.55)"
+                      stroke={Colors.Texts.secondary}
                       interval={0}
                       tick={{ fontSize: 12 }}
                     />
                     <YAxis
-                      stroke="rgba(255,255,255,0.55)"
+                      stroke={Colors.Texts.secondary}
                       tickFormatter={(value) => formatChartCurrency(Number(value))}
                       width={80}
                       domain={[0, (maximum: number) => maximum || 1]}
                     />
                     <Tooltip
                       contentStyle={{
-                        background: "#141414",
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: Colors.Background.secondary,
+                        border: `1px solid ${Colors.Borders.primary}`,
                         borderRadius: 8,
-                        color: "#fff",
+                        color: Colors.Texts.primary,
                       }}
                       formatter={(value) => formatCurrency(Number(value))}
                     />
@@ -654,7 +655,7 @@ export function Reports() {
                       <LabelList
                         dataKey="revenue"
                         position="top"
-                        fill="#fff"
+                        fill={Colors.Texts.primary}
                         fontSize={12}
                         formatter={(value) => formatChartCurrency(Number(value))}
                       />

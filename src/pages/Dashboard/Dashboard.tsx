@@ -1,3 +1,4 @@
+import Colors from "../../themes/Colors";
 import styles from "./Dashboard.module.css";
 import {
   ResponsiveContainer,
@@ -285,7 +286,7 @@ export function Dashboard() {
     <div className={styles.page}>
       <div className={styles.top}>
         <div>
-          <h1 className={styles.title}>Relatórios de Vendas</h1>
+          <h1 className={styles.title}>Visão geral</h1>
           <p className={styles.subtitle}>
             Acompanhe as vendas e os pedidos do período.
           </p>
@@ -359,13 +360,13 @@ export function Dashboard() {
           <div className={styles.metrics}>
             <div className={`${styles.metricCard} ${styles.revenueCard}`}>
               <span className={styles.metricIcon}><FiDollarSign aria-hidden="true" /></span>
-              <div className={styles.metricLabel}>FATURAMENTO TOTAL</div>
+              <div className={styles.metricLabel}>Faturamento total</div>
               <div className={styles.metricValue}>{formatMoney(revenueInCents / 100)}</div>
               <div className={styles.metricSub}>{validOrders.length} pedidos não cancelados</div>
             </div>
             <div className={`${styles.metricCard} ${styles.ordersCard}`}>
               <span className={styles.metricIcon}><FiShoppingBag aria-hidden="true" /></span>
-              <div className={styles.metricLabel}>NÚMERO DE PEDIDOS</div>
+              <div className={styles.metricLabel}>Número de pedidos</div>
               <div className={styles.metricValue}>{filteredOrders.length}</div>
               <div className={styles.metricSub}>
                 {filteredOrders.filter((order) => order.status === OrderStatusEnum.DELIVERED).length} entregues
@@ -380,7 +381,7 @@ export function Dashboard() {
                   <FiTrendingUp />
                 </span>
                 <div>
-                  <div className={styles.panelTitle}>Desempenho de Vendas</div>
+                  <div className={styles.panelTitle}>Desempenho de vendas</div>
                   <div className={styles.panelSub}>
                     Faturamento no período selecionado
                   </div>
@@ -408,21 +409,21 @@ export function Dashboard() {
                   <AreaChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="fillYellow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ffd400" stopOpacity={0.28} />
-                        <stop offset="100%" stopColor="#ffd400" stopOpacity={0} />
+                        <stop offset="0%" stopColor={Colors.Highlight.primary} stopOpacity={0.28} />
+                        <stop offset="100%" stopColor={Colors.Highlight.primary} stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
+                    <CartesianGrid stroke={Colors.Borders.primary} vertical={false} />
+                    <XAxis dataKey="label" tick={{ fill: Colors.Texts.secondary, fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
                     <YAxis hide domain={[0, "auto"]} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area
                       type="monotone"
                       dataKey="value"
-                      stroke="#ffd400"
+                      stroke={Colors.Highlight.primary}
                       strokeWidth={3}
                       fill="url(#fillYellow)"
-                      dot={{ r: 3, fill: "#ffd400" }}
+                      dot={{ r: 3, fill: Colors.Highlight.primary }}
                       activeDot={{ r: 6 }}
                     />
                   </AreaChart>
@@ -435,7 +436,7 @@ export function Dashboard() {
 
           <div className={styles.tablePanel}>
             <div className={styles.tableHeader}>
-              <div className={styles.tableTitle}>Vendas Recentes</div>
+              <div className={styles.tableTitle}>Vendas recentes</div>
 
             </div>
 

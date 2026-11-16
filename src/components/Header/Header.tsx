@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./Header.module.css";
 import { FiBell } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import { SystemSettingsService } from "../../service/system-settings.service";
 import type { SystemSettingsResponse } from "../../dtos/response/system-settings-response.dto";
 
@@ -99,9 +100,9 @@ export function Header({ title }: HeaderProps) {
       <h1 className={styles.title}>{title}</h1>
 
       <div className={styles.right}>
-        <button className={styles.notification}>
+        <Link className={styles.notification} to="/pedidos" aria-label="Ver pedidos" title="Ver pedidos">
           <FiBell />
-        </button>
+        </Link>
 
         <div className={styles.status}>
           <span>Status da Loja:</span>

@@ -1,390 +1,82 @@
 .page {
-  height: 100vh;
-  display: grid;
-  grid-template-columns: 1.35fr 0.55fr;
-  background: radial-gradient(1000px 600px at 20% 30%, rgba(255, 215, 0, 0.06), transparent 55%),
-    linear-gradient(180deg, var(--bgPrimary), var(--bgSecondary));
-  color: var(--textPrimary);
-  overflow:scroll;
+  height: 100dvh;
+  overflow-y: auto;
+  background: #0b0402 var(--heroImage) left 70px / auto calc(100dvh - 70px) no-repeat;
+  color: var(--text-primary);
+  padding-top: 70px;
 }
 
-.left {
-  position: relative;
-  display: flex;
-  align-items: stretch;
+.header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  height: 70px;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
 }
 
-.heroBg {
-  position: absolute;
-  inset: 0;
-  background-image: var(--heroImage);
-  background-size: cover;
-  background-position: center;
-}
+.headerInner { display: flex; align-items: center; justify-content: space-between; max-width: 1120px; height: 100%; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand > svg { width: 40px; height: 40px; color: var(--highlight); stroke-width: 1.6; }
+.brand strong { display: block; font-size: 27px; line-height: 1; font-weight: 800; letter-spacing: -0.8px; }
+.brand span { display: block; margin-top: 6px; color: var(--highlight); font-size: 8px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; }
+.adminLabel { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 12px; }
+.adminLabel svg { color: var(--highlight); }
 
-.heroOverlay {
-  position: absolute;
-  inset: 0;
-  background: #00000094;
-}
-
-.leftInner {
-  position: relative;
-  z-index: 2;
-  padding: 44px 48px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 14px;
-  left: 40px;
-}
-
-.brandRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.brandMark {
-  width: 35px;
-  height: 40px;
-  border-radius: 8px;
-  background: var(--highlight);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-
-.brandName {
-  font-weight: 500;
-  opacity: 0.92;
-  font-size: 20px;
-  font-style: italic;
-}
-
-.heroTitle {
-  font-size: 64px;
-  line-height: 0.98;
-  letter-spacing: -1px;
-  margin: 0;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.heroTitleHighlight {
-  color: var(--highlight);
-  text-shadow: 0 10px 28px rgba(255, 215, 0, 0.12);
-}
-
-.heroDesc {
-  width: 40%;
-  margin: 6px 0 0;
-  max-width: 520px;
-  color: var(--textSecondary);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.statsRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 18px;
-}
-
-.statItem {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.statValue {
-  font-weight: 900;
-  color: var(--highlight);
-  font-size: 18px;
-  letter-spacing: 0.2px;
-}
-
-.statLabel {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.65);
-  letter-spacing: 1px;
-}
-
-.statDivider {
-  width: 1px;
-  height: 22px;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.miniWidget {
-  position: absolute;
-  left: 36px;
-  bottom: 34px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.miniChartWrap {
-  width: 220px;
-  height: 78px;
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
-  backdrop-filter: blur(10px);
-}
-
-.miniChart {
-  position: absolute;
-  inset: 0;
-  padding: 8px 10px;
-}
-
-.tooltip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 6px 10px;
-  border-radius: 999px;
-  backdrop-filter: blur(10px);
-  color: var(--textPrimary);
-  font-size: 12px;
-}
-
-.tooltipDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--highlight);
-  box-shadow: 0 10px 18px rgba(255, 215, 0, 0.18);
-}
-
-.tooltipText {
-  font-weight: 800;
-}
-
-.right {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0px 44px;
-  background: radial-gradient(700px 500px at 50% 15%, rgba(255, 255, 255, 0.05), transparent 60%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.65));
-}
+.content { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.9fr); align-content: center; align-items: center; gap: 40px; min-height: calc(100dvh - 70px); max-width: 1200px; margin: 0 auto; padding: 32px 40px; }
+.intro { align-self: stretch; padding-top: 10px; text-align: center; }
+.intro h1 { margin: 0; font-size: clamp(36px, 3.4vw, 46px); font-weight: 800; font-style: italic; line-height: 1.1; letter-spacing: -1px; }
+.intro h1 span { position: relative; display: block; width: fit-content; margin: 0 auto; padding-bottom: 12px; color: var(--highlight); font-family: 'Yellowtail', cursive; font-size: clamp(58px, 5vw, 70px); font-weight: 400; font-style: normal; letter-spacing: 0; }
+.intro h1 span::after { position: absolute; right: 4px; bottom: 0; left: 10px; height: 8px; border-top: 3px solid var(--highlight); border-radius: 50%; content: ''; transform: rotate(-3deg); }
+.intro p { margin: 14px 0 0; color: var(--text-primary); font-size: 13px; line-height: 1.6; }
 
 .loginWrap {
-  width: 90%;
-}
-
-.panelHeader {
   width: 100%;
-  margin-bottom: 26px;
-  display: flex;
-  flex-direction: column;
+  max-width: 390px;
+  margin: 0 auto;
+  padding: 28px;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at top right, rgba(255, 174, 0, 0.13), transparent 40%) padding-box,
+    radial-gradient(ellipse at bottom left, rgba(255, 174, 0, 0.1), transparent 40%) padding-box,
+    linear-gradient(145deg, #140b07, #21120d) padding-box,
+    radial-gradient(ellipse at top right, #ffd000, transparent 45%) border-box,
+    radial-gradient(ellipse at bottom left, #ffd000, #795038 45%, rgba(183, 123, 91, 0.38) 65%) border-box;
 }
+.formBrand { justify-content: center; margin-bottom: 24px; }
+.panelTitle { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.panelSub { margin: 6px 0 22px; color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+.form { display: flex; flex-direction: column; gap: 18px; }
+.field { display: grid; gap: 7px; color: var(--text-primary); font-size: 13px; font-weight: 600; }
+.inputWrap { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 9px; background: rgba(255, 255, 255, 0.025); color: var(--text-secondary); }
+.inputWrap:focus-within { border-color: var(--highlight); box-shadow: 0 0 0 3px rgba(255, 208, 0, 0.08); }
+.inputWrap > svg { width: 18px; height: 18px; }
+.input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text-primary); font-size: 16px; font-weight: 400; }
+.input::placeholder { color: var(--text-muted); }
+.eyeBtn { display: grid; place-items: center; flex: 0 0 30px; height: 32px; padding: 0; border: 0; background: transparent; color: var(--text-secondary); font-size: 18px; cursor: pointer; }
+.check { display: flex; align-items: center; gap: 7px; color: var(--text-secondary); font-size: 12px; }
+.check input { width: 15px; height: 15px; margin: 0; accent-color: var(--highlight); }
+.error { margin: 0; padding: 10px; border: 1px solid rgba(255, 142, 135, 0.2); border-radius: 8px; background: rgba(255, 142, 135, 0.06); color: #ff9b8d; font-size: 12px; }
+.submit { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 46px; border: 0; border-radius: 10px; background: var(--highlight); color: #211303; font-size: 14px; font-weight: 700; cursor: pointer; }
+.submit:disabled { opacity: 0.7; cursor: wait; }
+.secureLabel { display: flex; align-items: center; justify-content: center; gap: 7px; margin: 22px 0 0; padding-top: 18px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 10px; }
+.secureLabel svg { color: var(--highlight); }
+.loader { width: 18px; height: 18px; border: 2px solid rgba(22, 11, 7, 0.25); border-top-color: #211303; border-radius: 50%; animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.panelTitle {
-  width:80%;
-  font-size: 25px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
-  line-height: 1.05;
-}
-
-.panelSub {
-  width:80%;
-  margin-top: 10px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-}
-
-.label {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.65);
-  margin: 0px 0 10px;
-  font-weight: 600;
-}
-
-.inputWrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-radius: 14px;
-  padding: 16px 16px;
-  background: rgba(255, 215, 0, 0.09);
-  border: 1px solid rgba(255, 215, 0, 0.12);
-  width: 100%;
-  height: 45px;
-}
-
-.inputIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 18px;
-  width: 22px;
-}
-
-.input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--textPrimary);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.input::placeholder {
-  color: rgba(255, 255, 255, 0.28);
-  font-weight: 600;
-}
-
-.eyeBtn {
-  border: none;
-  outline: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 22px;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 2px 4px;
-}
-
-.rowBetween {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 16px;
-}
-
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.62);
-  user-select: none;
-  font-size: 12px;
-}
-
-.check input {
-  width: 15px;
-  height: 15px;
-  accent-color: var(--highlight);
-}
-
-.linkBtn {
-  border: none;
-  background: transparent;
-  color: var(--highlight);
-  font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.submit {
-  margin-top: 26px;
-  width: 100%;
-  height: 45px;
-  border: none;
-  border-radius: 16px;
-  background: var(--highlight);
-  color: #0b0b0b;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  font-size: 13px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  box-shadow: 0 18px 44px rgba(255, 215, 0, 0.18);
-}
-
-.submit:disabled {
-  cursor: not-allowed;
-  opacity: 0.78;
-}
-
-.submitIcon {
-  display: inline-flex;
-  align-items: center;
-  font-size: 22px;
-}
-
-.loader {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(11, 11, 11, 0.24);
-  border-top-color: #0b0b0b;
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.hr {
-  margin-top: 26px;
-  height: 1px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.secureLabel {
-  margin-top: 18px;
-  text-align: center;
-  font-size: 12px;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.28);
-  font-weight: 500;
-}
-
-@media (max-width: 980px) {
-  .page {
-    grid-template-columns: 1fr;
-  overflow:scroll;
-  }
-  .left {
-    min-height: 52vh;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-  .heroTitle {
-    font-size: 52px;
-  }
-  .miniWidget {
-    left: 22px;
-    bottom: 18px;
-    transform: scale(0.96);
-    transform-origin: left bottom;
-  }
-  .right {
-    padding: 46px 26px;
-  }
-  .panelTitle {
-    font-size: 40px;
-  }
+@media (max-width: 900px) {
+  .page { padding-top: 0; background: #0b0402 url('/login-banner-mobile.png') center top / 100% auto no-repeat; }
+  .header { position: static; height: 93px; padding: 26px 20px 20px; border: 0; background: transparent; }
+  .headerInner { justify-content: center; }
+  .adminLabel { display: none; }
+  .content { display: block; min-height: 0; padding: 0 16px 28px; }
+  .intro { min-height: calc(100vw * 1672 / 941 - 149px); padding-top: 12px; }
+  .intro h1 { font-size: clamp(34px, 10vw, 46px); }
+  .intro h1 span { font-size: clamp(57px, 17vw, 78px); }
+  .loginWrap { max-width: 430px; padding: 24px 20px; }
+  .formBrand { display: none; }
 }

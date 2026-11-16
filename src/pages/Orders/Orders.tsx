@@ -1,7 +1,7 @@
 import { OrderStatusEnum } from "../../dtos/enums/orders-status.enum";
 import type { OrderResponseDto } from "../../dtos/response/orders-response.dto";
 import styles from "./Orders.module.css";
-import { FiChevronLeft, FiChevronRight, FiMoreHorizontal } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { OrderCard } from "../../components/OrderCard";
 import { useEffect, useRef, useState } from "react";
 import { OrderService } from "../../service/order.service";
@@ -27,27 +27,27 @@ const ORDER_COLUMNS: {
   tone: ColumnTone;
 }[] = [
   {
-    title: "NOVOS",
+    title: "Novos",
     status: OrderStatusEnum.RECEIVED,
     tone: "yellow",
   },
   {
-    title: "EM PREPARO",
+    title: "Em preparo",
     status: OrderStatusEnum.PREPARING,
     tone: "blue",
   },
   {
-    title: "EM ROTA",
+    title: "Em rota",
     status: OrderStatusEnum.ON_ROUTE,
     tone: "orange",
   },
   {
-    title: "ENTREGUES",
+    title: "Entregues",
     status: OrderStatusEnum.DELIVERED,
     tone: "green",
   },
   {
-    title: "CANCELADOS",
+    title: "Cancelados",
     status: OrderStatusEnum.CANCELED,
     tone: "red",
   },
@@ -111,15 +111,14 @@ function ColumnHeader({
         </span>
       </div>
 
-      <button className={styles.kebab} type="button" aria-label="Menu">
-        <FiMoreHorizontal />
-      </button>
     </div>
   );
 }
 
 export function Orders() {
   const [orders, setOrders] = useState<BoardOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [canScrollPrevious, setCanScrollPrevious] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -167,8 +166,12 @@ export function Orders() {
         if (!active) return;
 
         setOrders(data.map(mapOrderToBoardOrder));
+        setLoadError(null);
       } catch (error) {
         console.error("Erro ao carregar pedidos:", error);
+        if (active) setLoadError("Não foi possível atualizar os pedidos. Tentaremos novamente em instantes.");
+      } finally {
+        if (active) setLoading(false);
       }
     }
 
@@ -196,6 +199,7 @@ export function Orders() {
 
   return (
     <div className={styles.page}>
+      {loadError && <p className={styles.alert} role="alert">{loadError}</p>}
       <div ref={boardRef} id="orders-board" className={styles.board}>
         {ORDER_COLUMNS.map((column) => {
           const columnOrders = orders.filter((o) => o.status === column.status);
@@ -208,6 +212,9 @@ export function Orders() {
                 tone={column.tone}
               />
               <div className={styles.list}>
+                {columnOrders.length === 0 && (
+                  <p className={styles.empty}>{loading ? "Carregando pedidos..." : "Nenhum pedido por aqui."}</p>
+                )}
                 {columnOrders.map((o) => (
                   <div
                     key={o.id}

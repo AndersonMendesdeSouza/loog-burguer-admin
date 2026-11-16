@@ -70,11 +70,6 @@ export function Products() {
     [counts],
   );
 
-  // const getPrimaryImageUrl = (images: ImageResponse[]) => {
-  //   const primary = (images || []).find((img: any) => img?.isPrimary);
-  //   return primary?.url || (images?.[0] as any)?.url || "";
-  // };
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -133,6 +128,7 @@ export function Products() {
             <button
               key={c.key}
               type="button"
+              aria-pressed={activeCat === c.key}
               onClick={() => setActiveCat(c.key)}
               className={`${styles.tab} ${activeCat === c.key ? styles.tabActive : ""}`}
             >
@@ -142,30 +138,21 @@ export function Products() {
         </div>
 
         <button
-          style={{
-            width: 150,
-            height: 40,
-            borderRadius: 10,
-            backgroundColor: "#ffd400",
-            color: "#000",
-            fontWeight: "600",
-            border: "none",
-            alignItems: "center",
-            display: "flex",
-            gap: 5,
-            justifyContent: "center",
-          }}
+          className={styles.createButton}
+          type="button"
           onClick={() => navigate("/product-details")}
         >
           <CgFileAdd size={20} />
-          Novo Produto
+          Novo produto
         </button>
       </div>
 
       {loading ? (
-        <div style={{ padding: 12 }}>Carregando...</div>
+        <div className={styles.state} role="status">Carregando produtos...</div>
       ) : error ? (
-        <div style={{ padding: 12 }}>{error}</div>
+        <div className={styles.error} role="alert">{error}</div>
+      ) : total === 0 ? (
+        <div className={styles.state}>Nenhum produto nesta categoria.</div>
       ) : (
         <div className={styles.categories}>
           {CATEGORIES.filter((category) => category.key !== "all").map(

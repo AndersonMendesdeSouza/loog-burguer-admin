@@ -1,15 +1,9 @@
 .page {
   width: 100%;
-  padding: 18px;
+  padding: 0;
   height: 100%;
   min-height: 0;
   overflow-y: auto;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.page::-webkit-scrollbar {
-  display: none;
 }
 
 .top {
@@ -25,16 +19,16 @@
 }
 
 .title {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   overflow-wrap: anywhere;
 }
 
 .subtitle {
   margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.56);
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -47,8 +41,8 @@
   gap: 10px;
   padding: 12px;
   border: 1px solid rgba(255, 215, 0, 0.16);
-  border-radius: 16px;
-  background: #211f17;
+  border-radius: 14px;
+  background: var(--bg-secondary);
 }
 
 .filterField {
@@ -56,7 +50,7 @@
   flex-direction: column;
   min-width: 0;
   gap: 8px;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
@@ -71,7 +65,7 @@
 
 .filterLabel svg {
   flex-shrink: 0;
-  color: #ffd700;
+  color: var(--highlight);
   font-size: 14px;
 }
 
@@ -82,8 +76,8 @@
   padding: 0 12px;
   border: 1px solid rgba(255, 215, 0, 0.14);
   border-radius: 10px;
-  background: #181814;
-  color: #f7f3e5;
+  background: var(--surface-muted);
+  color: var(--text-primary);
   color-scheme: dark;
   font: inherit;
   cursor: pointer;
@@ -94,7 +88,7 @@
 }
 
 .filterInput:focus {
-  border-color: #ffd700;
+  border-color: var(--highlight);
 }
 
 .filterInput[aria-invalid="true"] {
@@ -111,17 +105,17 @@
 .metricCard {
   min-width: 0;
   border: 1px solid;
-  border-radius: 20px;
+  border-radius: 14px;
   padding: 22px;
 }
 
 .revenueCard {
-  background: #272419;
+  background: var(--bg-secondary);
   border-color: rgba(255, 215, 0, 0.2);
 }
 
 .ordersCard {
-  background: #2a221a;
+  background: var(--bg-secondary);
   border-color: rgba(245, 158, 11, 0.2);
 }
 
@@ -132,19 +126,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffd700;
+  background: var(--highlight);
   color: #251c00;
   font-size: 23px;
 }
 
 .ordersCard .metricIcon {
-  background: #f5a623;
+  background: var(--highlight);
   color: #2a1900;
 }
 
 .metricLabel {
   margin-top: 18px;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -152,29 +146,29 @@
 
 .metricValue {
   margin-top: 6px;
-  color: #ffe16a;
+  color: var(--highlight);
   font-size: clamp(24px, 2.2vw, 32px);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .ordersCard .metricValue {
-  color: #ffc16a;
+  color: var(--highlight);
 }
 
 .metricSub {
   margin-top: 8px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 500;
 }
 
 .panel {
   margin-top: 10px;
-  background: #202020;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
   padding: 20px;
 }
 
@@ -202,18 +196,18 @@
   border: 1px solid rgba(255, 215, 0, 0.16);
   border-radius: 13px;
   background: rgba(255, 215, 0, 0.08);
-  color: #ffd700;
+  color: var(--highlight);
   font-size: 20px;
 }
 
 .panelTitle {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   font-weight: 700;
   font-size: 15px;
 }
 
 .panelSub {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
   font-size: 12px;
   margin-top: 4px;
 }
@@ -221,7 +215,7 @@
 .tabs {
   display: inline-flex;
   flex-shrink: 0;
-  background: #181818;
+  background: var(--surface-muted);
   border: 1px solid rgba(255, 215, 0, 0.15);
   border-radius: 13px;
   padding: 4px;
@@ -233,7 +227,7 @@
   padding: 0 14px;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-secondary);
   font: inherit;
   font-weight: 600;
   font-size: 12px;
@@ -243,12 +237,12 @@
 
 .tab:hover {
   background: rgba(255, 215, 0, 0.08);
-  color: #ffe16a;
+  color: var(--highlight);
 }
 
 .tabActive,
 .tabActive:hover {
-  background: #ffd700;
+  background: var(--highlight);
   color: #111;
 }
 
@@ -264,7 +258,7 @@
   justify-content: center;
   min-height: 120px;
   padding: 16px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 13px;
   text-align: center;
 }
@@ -277,39 +271,39 @@
   margin: 14px 0;
   padding: 12px;
   border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: 8px;
+  border-radius: 10px;
   background: rgba(239, 68, 68, 0.1);
   color: #fca5a5;
   font-size: 13px;
 }
 
 .tooltip {
-  background: #101010;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface-muted);
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
   padding: 10px 12px;
-  color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  color: var(--text-primary);
+  box-shadow: none;
 }
 
 .tooltipTitle {
   font-size: 11px;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.65);
+  font-weight: 700;
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
 .tooltipValue {
   font-size: 12px;
-  font-weight: 900;
-  color: #ffd400;
+  font-weight: 700;
+  color: var(--highlight);
 }
 
 .tablePanel {
   margin-top: 18px;
-  background: #202020;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
   padding: 20px;
 }
 
@@ -322,15 +316,15 @@
 }
 
 .tableTitle {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 900;
+  color: var(--text-primary);
+  font-weight: 700;
   font-size: 13px;
 }
 
 .table {
   border-radius: 14px;
   overflow-x: auto;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
 }
 
 .row {
@@ -340,8 +334,8 @@
   gap: 12px;
   align-items: center;
   padding: 12px 12px;
-  background: rgba(0, 0, 0, 0.18);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface-muted);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .row > div {
@@ -350,28 +344,28 @@
 }
 
 .thead {
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.55);
-  font-weight: 900;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.12em;
 }
 
 .idCell {
-  color: #ffd400;
-  font-weight: 900;
+  color: var(--highlight);
+  font-weight: 700;
 }
 
 .dateCell {
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 800;
+  color: var(--text-primary);
+  font-weight: 400;
   font-size: 12px;
 }
 
 .muted {
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-muted);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .clientCell {
@@ -385,31 +379,31 @@
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-hover);
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.75);
+  font-weight: 700;
+  color: var(--text-secondary);
   font-size: 11px;
 }
 
 .clientName {
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+  color: var(--text-primary);
   font-size: 12px;
 }
 
 .productsCell {
-  color: rgba(255, 255, 255, 0.55);
-  font-weight: 700;
+  color: var(--text-muted);
+  font-weight: 400;
   font-size: 12px;
 }
 
 .totalCell {
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+  color: var(--text-primary);
   font-size: 12px;
 }
 
@@ -420,7 +414,7 @@
   padding: 5px 10px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -438,7 +432,7 @@
 
 .status_new {
   background: rgba(255, 212, 0, 0.14);
-  color: #ffd400;
+  color: var(--highlight);
   border: 1px solid rgba(255, 212, 0, 0.22);
 }
 
@@ -463,9 +457,9 @@
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -494,10 +488,10 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 900;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -537,7 +531,7 @@
 
 @media (max-width: 600px) {
   .page {
-    padding: 12px;
+    padding: 0;
   }
 
   .metrics,

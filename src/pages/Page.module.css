@@ -10,7 +10,7 @@
 }
 
 .card {
-  background-color: #1f1f1f;
+  background-color: var(--bg-secondary);
   padding: 16px;
   border-radius: 10px;
 }
@@ -20,6 +20,6 @@
 }
 
 .card span {
-  color: #ffd400;
+  color: var(--highlight);
   font-weight: bold;
 }
