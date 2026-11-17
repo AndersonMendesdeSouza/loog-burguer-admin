@@ -127,13 +127,13 @@
   align-items: center;
   justify-content: center;
   background: var(--highlight);
-  color: #251c00;
+  color: #171717;
   font-size: 23px;
 }
 
 .ordersCard .metricIcon {
   background: var(--highlight);
-  color: #2a1900;
+  color: #171717;
 }
 
 .metricLabel {

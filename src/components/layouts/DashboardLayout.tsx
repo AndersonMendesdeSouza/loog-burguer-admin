@@ -6,6 +6,7 @@ import { Suspense } from "react";
 
 function getHeaderTitle(pathname: string) {
   if (pathname.startsWith("/pedidos")) return "Pedidos";
+  if (pathname.startsWith("/mesas-comandas")) return "Mesas e Comandas";
   if (pathname.startsWith("/produtos")) return "Produtos";
   if (pathname.startsWith("/clientes")) return "Clientes";
   if (pathname.startsWith("/relatorios")) return "Relatórios";

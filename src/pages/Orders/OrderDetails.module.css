@@ -59,7 +59,7 @@
 .statusPill {
   font-size: 11px;
   font-weight: 700;
-  color: #160b07;
+  color: #171717;
   background: var(--highlight);
   padding: 6px 10px;
   border-radius: 999px;
@@ -130,7 +130,7 @@
   border-radius: 12px;
   border: none;
   background: var(--highlight);
-  color: #160b07;
+  color: #171717;
   cursor: pointer;
   font-weight: 700;
   display: inline-flex;
@@ -512,7 +512,7 @@
   border-top-right-radius: 4px;
   border-color: rgba(255, 215, 0, 0.22);
   background: var(--highlight);
-  color: #160b07;
+  color: #171717;
 }
 
 .chatAuthor {
@@ -576,7 +576,7 @@
   border-radius: 12px;
   border: none;
   background: var(--highlight);
-  color: #160b07;
+  color: #171717;
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;

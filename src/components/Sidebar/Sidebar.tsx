@@ -9,6 +9,7 @@ import {
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 import { FileBarChart2Icon, Hamburger } from "lucide-react";
+import { MdOutlineTableRestaurant } from "react-icons/md";
 import { IoExitOutline } from "react-icons/io5";
 import { useAuth } from "../../contexts/AuthContext";
 import { useOrderCount } from "../../contexts/OrderCountContext";
@@ -110,6 +111,15 @@ export function Sidebar() {
             <FiShoppingCart className={styles.icon} />
             <span>Pedidos</span>
             <span className={styles.badge}>{newOrders}</span>
+          </NavLink>
+
+          <NavLink
+            to="/mesas-comandas"
+            title="Mesas e Comandas"
+            className={({ isActive }) => isActive ? styles.active : styles.link}
+          >
+            <MdOutlineTableRestaurant className={styles.icon} />
+            <span>Mesas e Comandas</span>
           </NavLink>
 
           <NavLink

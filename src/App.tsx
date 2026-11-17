@@ -22,6 +22,7 @@ const ORDER_POLLING_INTERVAL_MS = 10_000;
 
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard").then((module) => ({ default: module.Dashboard })));
 const Reports = lazy(() => import("./pages/Reports/Reports").then((module) => ({ default: module.Reports })));
+const Tables = lazy(() => import("./pages/Tables/Tables"));
 
 function showNewOrderAlert(newOrdersCount: number) {
   toast.success(
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pedidos" element={<Orders />} />
+          <Route path="/mesas-comandas" element={<Tables />} />
           <Route path="/produtos" element={<Products />} />
           <Route path="/clientes" element={<Customers />} />
           <Route path="/relatorios" element={<Reports />} />

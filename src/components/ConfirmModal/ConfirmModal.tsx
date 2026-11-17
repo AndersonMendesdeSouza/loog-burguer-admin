@@ -46,7 +46,7 @@ export default function ConfirmModal({
       ref={dialogRef}
       className={styles.dialog}
       style={{
-        backgroundColor: Colors.Background.primary,
+        backgroundColor: Colors.Background.secondary,
         color: Colors.Texts.primary,
       }}
       role="alertdialog"

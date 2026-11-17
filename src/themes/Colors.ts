@@ -1,12 +1,12 @@
 const Colors = {
   Background: {
-    primary: "#160b07",
-    secondary: "#21120d",
-    muted: "#1b0f0b",
+    primary: "#191919",
+    secondary: "#101010",
+    muted: "#141414",
   },
 
   Borders: {
-    primary: "rgba(183, 123, 91, 0.22)",
+    primary: "rgba(255, 255, 255, 0.09)",
   },
 
   Highlight: {
@@ -14,8 +14,8 @@ const Colors = {
   },
 
   Texts: {
-    primary: "#fffaf5",
-    secondary: "#c9bfb9",
+    primary: "#f5f5f5",
+    secondary: "#bfbfbf",
   },
 
   Status: {

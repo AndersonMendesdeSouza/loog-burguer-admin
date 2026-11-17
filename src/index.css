@@ -12,9 +12,9 @@
   --bgSecondary: var(--bg-secondary);
   --textPrimary: var(--text-primary);
   --textSecondary: var(--text-secondary);
-  --text-muted: #aa978c;
-  --border-strong: rgba(183, 123, 91, 0.4);
-  --surface-hover: #2b1911;
+  --text-muted: #909090;
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --surface-hover: #232323;
   --toastify-color-dark: var(--bg-secondary);
   --toastify-text-color-dark: var(--text-primary);
   --toastify-font-family: var(--font-primary);
