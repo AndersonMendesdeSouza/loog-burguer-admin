@@ -256,6 +256,7 @@ function getPaymentData(orders: OrderResponseDto[]): PaymentPoint[] {
 
   orders.forEach((order) => {
     if (isCanceled(order)) return;
+    if (!order.paymentMethod) return;
 
     const current = map.get(order.paymentMethod);
     if (!current) return;
@@ -283,7 +284,7 @@ function exportOrdersCsv(orders: OrderResponseDto[]) {
     formatOrderCode(order.code),
     order.customerName,
     STATUS_LABELS[order.status],
-    PAYMENT_LABELS[order.paymentMethod],
+    order.paymentMethod ? PAYMENT_LABELS[order.paymentMethod] : "Não informado",
     (parseMoneyInCents(order.total) / 100).toFixed(2).replace(".", ","),
     new Date(order.createdAt).toLocaleString("pt-BR"),
   ]);
@@ -703,7 +704,7 @@ export function Reports() {
                     >
                       {STATUS_LABELS[order.status]}
                     </span>
-                    <span>{PAYMENT_LABELS[order.paymentMethod]}</span>
+                    <span>{order.paymentMethod ? PAYMENT_LABELS[order.paymentMethod] : "Não informado"}</span>
                     <strong>{formatCurrency(parseMoneyInCents(order.total) / 100)}</strong>
                     <span title={new Date(order.createdAt).toLocaleString("pt-BR")}>
                       {formatShortDate(order.createdAt)}

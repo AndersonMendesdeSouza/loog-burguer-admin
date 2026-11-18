@@ -7,10 +7,12 @@ import { useEffect, useRef, useState } from "react";
 import { OrderService } from "../../service/order.service";
 import { formatOrderCode } from "../../utils/formatOrderCode";
 import { useOrderCount } from "../../contexts/OrderCountContext";
+import type { OrderType } from "../../dtos/enums/order-type.enum";
 
 type BoardOrder = {
   id: string;
   mesaId?: string | null;
+  type?: OrderType;
   number: string;
   customerName: string;
   minutes: number;
@@ -80,6 +82,7 @@ function mapOrderToBoardOrder(order: OrderResponseDto): BoardOrder {
   return {
     id: order.id,
     mesaId: order.mesaId,
+    type: order.type,
     number: formatOrderCode(order.code),
     customerName: order.customerName,
     minutes: getMinutesAgo(order.createdAt),
@@ -225,6 +228,7 @@ export function Orders() {
                     <OrderCard
                       navigateTo={`/orders-details/${o.id}`}
                       mesaId={o.mesaId}
+                      orderType={o.type}
                       status={o.status}
                       orderNumber={o.number}
                       customerName={o.customerName}

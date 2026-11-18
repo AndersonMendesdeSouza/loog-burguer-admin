@@ -97,26 +97,30 @@ function formatReceivedAt(value?: Date | string) {
 }
 
 function formatAddressLine(order: OrderResponseDto) {
-  if (!order.address) return "Endereco nao informado";
-  return `${order.address.street}, ${order.address.number}`;
+  if (order.type === "PICKUP") return "Retirada no balcão";
+  const address = order.deliveryAddress ?? order.address;
+  if (!address) return "Endereço não informado";
+  return `${address.street}, ${address.number}`;
 }
 
 function formatAddressDetails(order: OrderResponseDto) {
-  if (!order.address) return "";
+  const address = order.deliveryAddress ?? order.address;
+  if (!address) return "";
 
   return [
-    order.address.neighborhood,
-    `${order.address.city}/${order.address.state}`,
-    `CEP ${order.address.zipCode}`,
+    address.neighborhood,
+    `${address.city}/${address.state}`,
+    `CEP ${address.zipCode}`,
   ]
     .filter(Boolean)
     .join(" - ");
 }
 
 function formatAddressComplement(order: OrderResponseDto) {
-  if (!order.address) return "";
+  const address = order.deliveryAddress ?? order.address;
+  if (!address) return "";
 
-  return [order.address.complement, order.address.reference]
+  return [order.deliveryAddress?.block ? `Quadra ${order.deliveryAddress.block}` : "", order.deliveryAddress?.lot ? `Lote ${order.deliveryAddress.lot}` : "", address.complement, address.reference]
     .filter(Boolean)
     .join(" | ");
 }
@@ -618,7 +622,7 @@ export default function OrderDetails() {
             <div className={styles.cardHeader}>
               <div className={styles.cardHeaderLeft}>
                 <span className={styles.cardTitleMuted}>
-                  {tableNumber ? "DESTINO DO PEDIDO" : "ENDEREÇO DE ENTREGA"}
+                  {tableNumber || order.type === "PICKUP" ? "DESTINO DO PEDIDO" : "ENDEREÇO DE ENTREGA"}
                 </span>
               </div>
             </div>
@@ -653,7 +657,7 @@ export default function OrderDetails() {
 
             <div className={styles.paymentBlock}>
               <div className={styles.paymentMethod}>
-                {paymentLabel[order.paymentMethod] || "Nao informado"}
+                {order.paymentMethod ? paymentLabel[order.paymentMethod] : "Não informado"}
               </div>
             </div>
           </div>

@@ -1,3 +1,6 @@
+import type { TabResponseDto } from "../../dtos/response/tab-response.dto";
+import type { OrderResponseDto } from "../../dtos/response/orders-response.dto";
+
 export type OrderType = "table" | "pickup" | "delivery";
 export type ProductCategory = "FOOD" | "DRINK" | "ADDON" | "DESSERT";
 
@@ -15,6 +18,7 @@ export type MockOrderItem = MockProduct & { quantity: number };
 export type MockOrder = {
   id: string;
   createdAt: string;
+  cancelled?: boolean;
   items: MockOrderItem[];
 };
 
@@ -22,6 +26,7 @@ export type DeliveryAddress = {
   street: string;
   number: string;
   block: string;
+  lot?: string;
   neighborhood: string;
   city: string;
   state: string;
@@ -32,6 +37,8 @@ export type DeliveryAddress = {
 
 export type MockTab = {
   id: string;
+  apiTab?: TabResponseDto;
+  apiOrder?: OrderResponseDto;
   type: OrderType;
   tableNumber?: number;
   customerName: string;
@@ -85,6 +92,7 @@ export function formatMoney(amountInCents: number) {
 }
 
 export function getTabLabel(tab: MockTab) {
+  if (tab.apiOrder) return `${tab.customerName} · #${String(tab.apiOrder.code).padStart(4, "0")}`;
   if (tab.type === "table") return `Mesa ${tab.tableNumber}`;
   if (tab.customerName) return tab.customerName;
   return ORDER_TYPE_LABELS[tab.type];
@@ -117,6 +125,7 @@ export function getDeliveryError(details: NewOrderDetails): string {
 export function getTabItems(tab: MockTab): MockOrderItem[] {
   const items: MockOrderItem[] = [];
   for (const order of tab.orders) {
+    if (order.cancelled) continue;
     for (const item of order.items) {
       const existing = items.find((current) => current.id === item.id && current.priceInCents === item.priceInCents);
       if (existing) {
@@ -130,6 +139,19 @@ export function getTabItems(tab: MockTab): MockOrderItem[] {
 }
 
 export function getTabTotals(tab: MockTab) {
+  if (tab.apiOrder) {
+    return {
+      subtotalInCents: Math.round(Number(tab.apiOrder.subtotal) * 100),
+      serviceFeeInCents: Math.round(Number(tab.apiOrder.deliveryFee) * 100),
+      totalInCents: Math.round(Number(tab.apiOrder.total) * 100),
+    };
+  }
+  if (tab.apiTab) {
+    const subtotalInCents = Math.round(Number(tab.apiTab.subtotal) * 100);
+    const totalInCents = Math.round(Number(tab.apiTab.total) * 100);
+    const serviceFeeInCents = Math.max(0, totalInCents - subtotalInCents);
+    return { subtotalInCents, serviceFeeInCents, totalInCents };
+  }
   const subtotalInCents = getTabItems(tab).reduce((total, item) => total + item.priceInCents * item.quantity, 0);
   const serviceFeeInCents = tab.type === "table" ? Math.round(subtotalInCents * 0.1) : 0;
   return { subtotalInCents, serviceFeeInCents, totalInCents: subtotalInCents + serviceFeeInCents };

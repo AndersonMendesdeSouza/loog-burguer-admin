@@ -9,9 +9,11 @@ type Props = {
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  busy?: boolean;
+  className?: string;
 };
 
-export default function TableDialog({ title, description, icon, children, onClose, wide = false }: Props) {
+export default function TableDialog({ title, description, icon, children, onClose, wide = false, busy = false, className = "" }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -32,9 +34,9 @@ export default function TableDialog({ title, description, icon, children, onClos
   return (
     <dialog
       ref={dialogRef}
-      className={`${styles.dialog} ${wide ? styles.wideDialog : ""}`}
+      className={`${styles.dialog} ${wide ? styles.wideDialog : ""} ${className}`}
       aria-labelledby={titleId}
-      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}
     >
       <div className={styles.dialogHeader}>
         <span className={styles.dialogIcon} aria-hidden="true">{icon}</span>
@@ -42,7 +44,7 @@ export default function TableDialog({ title, description, icon, children, onClos
           <h2 id={titleId}>{title}</h2>
           {description && <p>{description}</p>}
         </div>
-        <button type="button" className={styles.closeButton} aria-label="Fechar modal" onClick={onClose}><X size={20} /></button>
+        <button type="button" className={styles.closeButton} disabled={busy} aria-label="Fechar modal" onClick={onClose}><X size={20} /></button>
       </div>
       {children}
     </dialog>

@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { OrderStatusEnum } from "../dtos/enums/orders-status.enum";
 import styles from "./OrderCard.module.css";
 import { FiChevronRight } from "react-icons/fi";
-import { UtensilsCrossed } from "lucide-react";
+import { ShoppingBag, Truck, UtensilsCrossed } from "lucide-react";
+import type { OrderType } from "../dtos/enums/order-type.enum";
 
 type OrderItem = {
   name: string;
@@ -12,6 +13,7 @@ type OrderItem = {
 type Props = {
   orderNumber: string;
   mesaId?: string | null;
+  orderType?: OrderType;
   customerName: string;
   minutesAgo: number;
   items: OrderItem[];
@@ -24,6 +26,7 @@ type Props = {
 export function OrderCard({
   orderNumber,
   mesaId,
+  orderType,
   customerName,
   minutesAgo,
   items,
@@ -89,6 +92,12 @@ export function OrderCard({
           <span>Mesa <strong>{tableNumber}</strong></span>
         </div>
       ) : null}
+      {!tableNumber && orderType === "PICKUP" && (
+        <div className={styles.tableBadge}><ShoppingBag aria-hidden="true" /><span>Retirada no balcão</span></div>
+      )}
+      {!tableNumber && orderType === "DELIVERY" && (
+        <div className={styles.tableBadge}><Truck aria-hidden="true" /><span>Entrega</span></div>
+      )}
 
       <ul className={styles.items}>
         {items.slice(0, 2).map((it, idx) => (

@@ -48,6 +48,10 @@ export default function DeliveryFields({ customerName, customerPhone, address, o
           <input id={`${id}-block`} name="block" value={address.block} onChange={(event) => onAddressChange("block", event.target.value)} placeholder="Ex.: 12" maxLength={30} />
         </div>
         <div className={styles.field}>
+          <label htmlFor={`${id}-lot`}>Lote <span>(opcional)</span></label>
+          <input id={`${id}-lot`} name="lot" value={address.lot ?? ""} onChange={(event) => onAddressChange("lot", event.target.value)} placeholder="Ex.: 8" maxLength={30} />
+        </div>
+        <div className={styles.field}>
           <label htmlFor={`${id}-neighborhood`}>Bairro</label>
           <input id={`${id}-neighborhood`} name="neighborhood" autoComplete="shipping address-level3" value={address.neighborhood} onChange={(event) => onAddressChange("neighborhood", event.target.value)} placeholder="Bairro da entrega" maxLength={80} required />
         </div>
@@ -68,7 +72,7 @@ export default function DeliveryFields({ customerName, customerPhone, address, o
           <input id={`${id}-reference`} name="reference" value={address.reference} onChange={(event) => onAddressChange("reference", event.target.value)} placeholder="Ex.: próximo à praça" maxLength={160} />
         </div>
       </div>
-      <p className={styles.fieldHint}>Preencha os campos obrigatórios para continuar. Os dados ficarão apenas nesta demonstração.</p>
+      <p className={styles.fieldHint}>O endereço será salvo neste pedido, sem cadastrar um endereço no perfil.</p>
     </div>
   );
 }
