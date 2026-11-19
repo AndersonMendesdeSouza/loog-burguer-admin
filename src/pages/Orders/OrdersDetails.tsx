@@ -14,6 +14,7 @@ import type { PaymentMethodEnum } from "../../dtos/enums/payment-method.enum";
 import { formatOrderCode } from "../../utils/formatOrderCode";
 import type { ChatMessageResponseDto } from "../../dtos/response/chat-message-response.dto";
 import { useOrderCount } from "../../contexts/OrderCountContext";
+import { socket } from "../../service/gatway";
 
 type TimelineStatus = "done" | "current" | "pending";
 
@@ -208,6 +209,12 @@ export default function OrderDetails() {
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    function handleNewOrder(){
+      alert("Oppaaa foi em ")
+    }
+    socket.on("message.created", handleNewOrder);
+  })
+  useEffect(() => {
     if (!id) {
       setError("Pedido nao informado.");
       setIsLoading(false);
@@ -262,13 +269,13 @@ export default function OrderDetails() {
         setOrder((current) =>
           current
             ? {
-                ...current,
-                chatId: chat.id,
-                chat: {
-                  ...chat,
-                  messages,
-                },
-              }
+              ...current,
+              chatId: chat.id,
+              chat: {
+                ...chat,
+                messages,
+              },
+            }
             : current,
         );
         setChatMessages(messages);
@@ -414,13 +421,13 @@ export default function OrderDetails() {
       setOrder((current) =>
         current
           ? {
-              ...current,
-              chatId: chat.id,
-              chat: {
-                ...chat,
-                messages: nextMessages,
-              },
-            }
+            ...current,
+            chatId: chat.id,
+            chat: {
+              ...chat,
+              messages: nextMessages,
+            },
+          }
           : current,
       );
       setChatMessages(nextMessages);
@@ -562,7 +569,7 @@ export default function OrderDetails() {
                           <div className={styles.itemPrice}>
                             {formatBRL(
                               item.totalPrice ||
-                                Number(item.unitPrice) * item.quantity,
+                              Number(item.unitPrice) * item.quantity,
                             )}
                           </div>
                         </div>
@@ -688,11 +695,10 @@ export default function OrderDetails() {
                     return (
                       <article
                         key={message.id}
-                        className={`${styles.chatBubble} ${
-                          isAdmin
+                        className={`${styles.chatBubble} ${isAdmin
                             ? styles.chatBubbleAdmin
                             : styles.chatBubbleCustomer
-                        }`}
+                          }`}
                       >
                         <div className={styles.chatAuthor}>
                           {message.senderType === ChatMessageSenderType.SYSTEM
@@ -805,32 +811,29 @@ export default function OrderDetails() {
                       >
                         <div className={styles.tlLeft}>
                           <div
-                            className={`${styles.tlDot} ${
-                              h.status === "done"
+                            className={`${styles.tlDot} ${h.status === "done"
                                 ? styles.tlDotDone
                                 : h.status === "current"
                                   ? styles.tlDotCurrent
                                   : styles.tlDotPending
-                            }`}
+                              }`}
                           />
                           {!isLast ? (
                             <div
-                              className={`${styles.tlLine} ${
-                                h.status === "done"
+                              className={`${styles.tlLine} ${h.status === "done"
                                   ? styles.tlLineDone
                                   : styles.tlLinePending
-                              }`}
+                                }`}
                             />
                           ) : null}
                         </div>
 
                         <div className={styles.tlContent}>
                           <div
-                            className={`${styles.tlLabel} ${
-                              h.status === "pending"
+                            className={`${styles.tlLabel} ${h.status === "pending"
                                 ? styles.tlLabelPending
                                 : ""
-                            }`}
+                              }`}
                           >
                             {h.label}
                           </div>

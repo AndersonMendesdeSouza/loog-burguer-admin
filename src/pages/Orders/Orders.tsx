@@ -121,7 +121,7 @@ export function Orders({ refreshKey }: OrdersProps) {
         console.error("Erro ao carregar pedidos:", error);
         if (active)
           setLoadError(
-            "Não foi possível atualizar os pedidos. Tentaremos novamente em instantes.",
+            "Não foi possível carregar os pedidos. Recarregue a página para tentar novamente.",
           );
       } finally {
         if (active) setLoading(false);
@@ -129,11 +129,9 @@ export function Orders({ refreshKey }: OrdersProps) {
     }
 
     void loadOrders();
-    const intervalId = window.setInterval(loadOrders, 10000);
 
     return () => {
       active = false;
-      window.clearInterval(intervalId);
     };
   }, [refreshKey]);
 
@@ -154,7 +152,7 @@ export function Orders({ refreshKey }: OrdersProps) {
       void refreshOrderCount();
     } catch {
       setActionError(
-        "Não foi possível atualizar o pedido. Confira a atualização automática e tente novamente.",
+        "Não foi possível atualizar o pedido. Recarregue a página e tente novamente.",
       );
     } finally {
       pendingUpdates.current.delete(id);

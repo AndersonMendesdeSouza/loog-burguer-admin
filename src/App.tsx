@@ -18,20 +18,10 @@ import {
   playNotificationSound,
   unlockNotificationSound,
 } from "./utils/notificationSound";
-import { socket } from "./service/order.gatway";
+import { socket } from "./service/gatway";
 
-const ORDER_POLLING_INTERVAL_MS = 10_000;
-
-const Dashboard = lazy(() =>
-  import("./pages/Dashboard/Dashboard").then((module) => ({
-    default: module.Dashboard,
-  })),
-);
-const Reports = lazy(() =>
-  import("./pages/Reports/Reports").then((module) => ({
-    default: module.Reports,
-  })),
-);
+const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard").then((module) => ({ default: module.Dashboard })));
+const Reports = lazy(() => import("./pages/Reports/Reports").then((module) => ({ default: module.Reports })));
 const Tables = lazy(() => import("./pages/Tables/Tables"));
 
 function showNewOrderAlert(newOrdersCount: number) {
@@ -132,14 +122,9 @@ export default function App() {
     socket.on("connect_error", handleConnectionError);
     socket.connect();
     void checkForNewOrders();
-    const intervalId = window.setInterval(
-      checkForNewOrders,
-      ORDER_POLLING_INTERVAL_MS,
-    );
 
     return () => {
       active = false;
-      window.clearInterval(intervalId);
       socket.off("order.created", handleNewOrder);
       socket.off("connect", checkForNewOrders);
       socket.off("connect_error", handleConnectionError);
@@ -167,11 +152,8 @@ export default function App() {
         >
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route
-            path="/pedidos"
-            element={<Orders refreshKey={ordersVersion} />}
-          />
-          <Route path="/mesas-comandas" element={<Tables />} />
+          <Route path="/pedidos" element={<Orders refreshKey={ordersVersion} />} />
+          <Route path="/mesas-comandas" element={<Tables refreshKey={ordersVersion} />} />
           <Route path="/produtos" element={<Products />} />
           <Route path="/clientes" element={<Customers />} />
           <Route path="/relatorios" element={<Reports />} />

@@ -26,6 +26,7 @@ import styles from "./Tables.module.css";
 
 type TableFilter = "all" | "occupied" | "free";
 type OrderDraft = { targetTabId?: string; tableNumber?: number };
+type TablesProps = { refreshKey: number };
 
 function getRequestError(error: unknown, fallback: string) {
   if (isAxiosError<{ message?: string | string[] }>(error)) {
@@ -36,7 +37,7 @@ function getRequestError(error: unknown, fallback: string) {
   return fallback;
 }
 
-export default function Tables() {
+export default function Tables({ refreshKey }: TablesProps) {
   const navigate = useNavigate();
   const [tables, setTables] = useState<TableResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +90,10 @@ export default function Tables() {
       const orders = await OrderService.findAll();
       const otherOrders = orders.filter((order) => !order.mesaId && (order.type === OrderType.PICKUP || order.type === OrderType.DELIVERY));
       setTables(response);
-      setTabs([...savedTabs, ...otherOrders.map(toStandaloneOrder)]);
+      setTabs((current) => [...savedTabs, ...otherOrders.map(toStandaloneOrder)].map((tab) => ({
+        ...tab,
+        notes: current.find((previous) => previous.id === tab.id)?.notes ?? "",
+      })));
     } catch (err) {
       console.error("Erro ao carregar mesas:", err);
       setTables([]);
@@ -101,7 +105,7 @@ export default function Tables() {
 
   useEffect(() => {
     void loadTables();
-  }, []);
+  }, [refreshKey]);
 
   async function openTable(tableId: string) {
     if (openingTable.current) return;
