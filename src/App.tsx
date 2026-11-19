@@ -10,7 +10,8 @@ import { useAuth } from "./contexts/AuthContext";
 import { useOrderCount } from "./contexts/OrderCountContext";
 import { Config } from "./pages/Config/Config";
 import { lazy, useCallback, useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { NotificationToast } from "./components/NotificationToast/NotificationToast";
+import { toast, ToastContainer, type ToastContentProps, type ToastOptions } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { OrderService } from "./service/order.service";
 import type { OrderResponseDto } from "./dtos/response/orders-response.dto";
@@ -37,51 +38,206 @@ const Reports = lazy(() =>
 );
 const Tables = lazy(() => import("./pages/Tables/Tables"));
 
-function showNewOrderAlert(newOrdersCount: number) {
-  toast.success(
-    newOrdersCount > 1
-      ? `${newOrdersCount} novos pedidos recebidos`
-      : "Novo pedido recebido",
-    {
-      toastId: "new-order-alert",
-      position: "top-center",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      theme: "dark",
-    },
+const MESSAGE_TOAST_ID = "new-message-alert";
+
+const notificationToastOptions: ToastOptions = {
+  position: "top-center",
+  autoClose: 8000,
+  hideProgressBar: true,
+  closeButton: false,
+  closeOnClick: false,
+  pauseOnHover: true,
+  icon: false,
+  theme: "dark",
+  style: {
+    padding: 0,
+    background: "transparent",
+    boxShadow: "none",
+    width: "100%",
+  },
+};
+
+function showNewOrderAlert(order: OrderResponseDto) {
+  const tableNumber = order.table?.number ?? order.mesaId;
+  const isTable = order.type === "DINE_IN";
+  const isPickup = order.type === "PICKUP";
+  const code = `Pedido #${String(order.code).padStart(4, "0")}`;
+  const tableLabel = tableNumber
+    ? `Mesa ${String(tableNumber).padStart(2, "0")}`
+    : "Mesa";
+  let kind: "delivery" | "table" | "pickup" = "delivery";
+  let title = "Novo pedido de delivery!";
+  let subtitle = code;
+  let description = "Um cliente acabou de realizar um pedido para entrega.";
+  let href = `/orders-details/${encodeURIComponent(order.id)}`;
+  let actionLabel = "Ver pedido";
+  if (isTable) {
+    kind = "table";
+    title = "Novo pedido na mesa!";
+    subtitle = `${tableLabel} · ${code}`;
+    description = `${tableLabel} acabou de realizar um novo pedido.`;
+    href = `/mesas-comandas?orderId=${encodeURIComponent(order.id)}`;
+    actionLabel = "Ver comanda";
+  } else if (isPickup) {
+    kind = "pickup";
+    title = "Novo pedido para retirada!";
+    description = "Um cliente realizou um pedido para retirar no balcão.";
+  }
+  toast(
+    ({ closeToast }) => (
+      <NotificationToast
+        kind={kind}
+        title={title}
+        subtitle={subtitle}
+        description={description}
+        href={href}
+        actionLabel={actionLabel}
+        onClose={closeToast}
+      />
+    ),
+    { ...notificationToastOptions, toastId: `order-${order.id}` },
   );
+}
+
+function getNotificationStorageKey(): string | null {
+  try {
+    const userId = localStorage.getItem("userId");
+    return userId ? `loog-burguer:message-notifications:${userId}` : null;
+  } catch (error) {
+    console.error("Erro ao acessar o armazenamento de notificações:", error);
+    return null;
+  }
+}
+
+function loadMessageNotifications(
+  storageKey: string | null,
+): MessageNotification[] {
+  if (!storageKey) return [];
+
+  try {
+    const stored = localStorage.getItem(storageKey);
+    if (!stored) return [];
+
+    const notifications: unknown = JSON.parse(stored);
+    if (!Array.isArray(notifications)) return [];
+
+    return notifications.filter(
+      (notification: unknown): notification is MessageNotification => {
+        if (typeof notification !== "object" || notification === null) {
+          return false;
+        }
+
+        return (
+          "id" in notification &&
+          typeof notification.id === "string" &&
+          "orderId" in notification &&
+          typeof notification.orderId === "string" &&
+          "text" in notification &&
+          typeof notification.text === "string" &&
+          "createdAt" in notification &&
+          typeof notification.createdAt === "string" &&
+          !Number.isNaN(Date.parse(notification.createdAt)) &&
+          "read" in notification &&
+          typeof notification.read === "boolean" &&
+          (!("customerName" in notification) ||
+            typeof notification.customerName === "string")
+        );
+      },
+    );
+  } catch (error) {
+    console.error("Erro ao carregar notificações salvas:", error);
+    return [];
+  }
 }
 
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
   const { refreshOrderCount } = useOrderCount();
+  const notificationStorageKey =
+    isAuthenticated && !loading ? getNotificationStorageKey() : null;
   const [ordersVersion, setOrdersVersion] = useState(0);
   const [messageVersions, setMessageVersions] = useState<
     Record<string, number>
   >({});
   const [connectionVersion, setConnectionVersion] = useState(0);
-  const [messageNotifications, setMessageNotifications] = useState<
-    MessageNotification[]
-  >([]);
+  const [notificationStore, setNotificationStore] = useState(() => {
+    const storageKey = getNotificationStorageKey();
+    return { storageKey, items: loadMessageNotifications(storageKey) };
+  });
+  const messageNotifications =
+    notificationStore.storageKey === notificationStorageKey
+      ? notificationStore.items
+      : [];
+
+  useEffect(() => {
+    if (
+      !isAuthenticated ||
+      loading ||
+      notificationStore.storageKey === notificationStorageKey
+    ) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setNotificationStore({
+        storageKey: notificationStorageKey,
+        items: loadMessageNotifications(notificationStorageKey),
+      });
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    isAuthenticated,
+    loading,
+    notificationStorageKey,
+    notificationStore.storageKey,
+  ]);
+
+  useEffect(() => {
+    if (
+      !notificationStorageKey ||
+      notificationStore.storageKey !== notificationStorageKey
+    ) {
+      return;
+    }
+
+    try {
+      if (notificationStore.items.length === 0) {
+        localStorage.removeItem(notificationStorageKey);
+      } else {
+        localStorage.setItem(
+          notificationStorageKey,
+          JSON.stringify(notificationStore.items),
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao salvar notificações:", error);
+    }
+  }, [notificationStorageKey, notificationStore]);
+
+  const clearMessageNotifications = useCallback(() => {
+    setNotificationStore((current) => ({ ...current, items: [] }));
+  }, []);
 
   const markMessagesRead = useCallback(
     (orderId: string, messageIds: string[]) => {
       const loadedIds = new Set(messageIds);
-      setMessageNotifications((current) => {
-        const hasUnread = current.some(
+      setNotificationStore((current) => {
+        const hasUnread = current.items.some(
           (notification) =>
             notification.orderId === orderId &&
             !notification.read &&
             loadedIds.has(notification.id),
         );
         if (!hasUnread) return current;
-        return current.map((notification) =>
-          notification.orderId === orderId && loadedIds.has(notification.id)
-            ? { ...notification, read: true }
-            : notification,
-        );
+        return {
+          ...current,
+          items: current.items.map((notification) =>
+            notification.orderId === orderId && loadedIds.has(notification.id)
+              ? { ...notification, read: true }
+              : notification,
+          ),
+        };
       });
     },
     [],
@@ -103,7 +259,11 @@ export default function App() {
   }, [isAuthenticated, loading]);
 
   useEffect(() => {
-    if (!isAuthenticated || loading) {
+    if (
+      !isAuthenticated ||
+      loading ||
+      notificationStore.storageKey !== notificationStorageKey
+    ) {
       socket.disconnect();
       return;
     }
@@ -111,12 +271,15 @@ export default function App() {
     let active = true;
     let initialLoadFinished = false;
     let isCheckingOrders = false;
+    let latestMessageToastSequence = 0;
     const knownOrderIds = new Set<string>();
-    const knownMessageIds = new Set<string>();
+    const knownMessageIds = new Set(
+      loadMessageNotifications(notificationStorageKey).map((message) => message.id),
+    );
 
-    function notifyNewOrders(count: number) {
+    function notifyNewOrders(orders: OrderResponseDto[]) {
       void playNotificationSound();
-      showNewOrderAlert(count);
+      orders.forEach(showNewOrderAlert);
       setOrdersVersion((version) => version + 1);
     }
 
@@ -124,7 +287,7 @@ export default function App() {
       if (!active || !order?.id || knownOrderIds.has(order.id)) return;
 
       knownOrderIds.add(order.id);
-      notifyNewOrders(1);
+      notifyNewOrders([order]);
       void refreshOrderCount();
     }
 
@@ -132,7 +295,7 @@ export default function App() {
       console.error("Erro ao conectar às notificações de pedidos:", error);
     }
 
-    function handleNewMessage(event: MessageCreatedEvent) {
+    async function handleNewMessage(event: MessageCreatedEvent) {
       if (!active || !event?.orderId || !event.message?.id) return;
       const message = event.message;
       if (knownMessageIds.has(message.id)) return;
@@ -143,18 +306,74 @@ export default function App() {
         [event.orderId]: (current[event.orderId] ?? 0) + 1,
       }));
       if (message.senderType !== ChatMessageSenderType.CUSTOMER) return;
-
-      setMessageNotifications((current) => [
-        {
-          id: message.id,
-          orderId: event.orderId,
-          text: message.text,
-          createdAt: message.createdAt,
-          read: false,
-        },
-        ...current,
-      ]);
       void playNotificationSound();
+      const messageToastSequence = ++latestMessageToastSequence;
+
+      let customerName = event.customerName?.trim();
+      let orderType = event.orderType;
+      let mesaId = event.mesaId;
+
+      if (!customerName) {
+        try {
+          const order = await OrderService.findById(event.orderId);
+          customerName = order.customerName?.trim();
+          orderType = order.type;
+          mesaId = order.mesaId;
+        } catch (error) {
+          console.error("Erro ao buscar o cliente da mensagem:", error);
+        }
+      }
+
+      if (!active) return;
+
+      setNotificationStore((current) => ({
+        storageKey: notificationStorageKey,
+        items: [
+          {
+            id: message.id,
+            orderId: event.orderId,
+            customerName,
+            text: message.text,
+            createdAt: message.createdAt,
+            read: false,
+          },
+          ...current.items,
+        ],
+      }));
+
+      if (messageToastSequence !== latestMessageToastSequence) return;
+
+      const time = new Date(message.createdAt).toLocaleTimeString("pt-BR", {
+        hour: "2-digit", minute: "2-digit",
+      });
+      let sender = customerName || "Cliente";
+      if (!customerName && orderType === "DINE_IN" && mesaId) {
+        sender = `Mesa ${mesaId.padStart(2, "0")}`;
+      }
+      const renderMessage = ({ closeToast }: ToastContentProps) => (
+        <NotificationToast
+          kind="message" title="Nova mensagem recebida!"
+          subtitle={`${sender} · ${time}`} description={message.text}
+          href={`/orders-details/${encodeURIComponent(event.orderId)}#order-chat`}
+          actionLabel="Ver conversa" onClose={closeToast}
+        />
+      );
+      const messageToastOptions: ToastOptions = {
+        ...notificationToastOptions,
+        toastId: MESSAGE_TOAST_ID,
+        autoClose: 5000,
+        pauseOnHover: false,
+        pauseOnFocusLoss: false,
+      };
+
+      if (toast.isActive(MESSAGE_TOAST_ID)) {
+        toast.update(MESSAGE_TOAST_ID, {
+          ...messageToastOptions,
+          render: renderMessage,
+        });
+      } else {
+        toast(renderMessage, messageToastOptions);
+      }
     }
 
     function handleConnect() {
@@ -170,17 +389,17 @@ export default function App() {
         const orders = await OrderService.findAll();
         if (!active) return;
 
-        let newOrdersCount = 0;
+        const newOrders: OrderResponseDto[] = [];
         for (const order of orders) {
           if (!knownOrderIds.has(order.id)) {
             // A primeira consulta carrega o histórico sem notificar pedidos antigos.
-            if (initialLoadFinished) newOrdersCount += 1;
+            if (initialLoadFinished) newOrders.push(order);
             knownOrderIds.add(order.id);
           }
         }
 
         initialLoadFinished = true;
-        if (newOrdersCount > 0) notifyNewOrders(newOrdersCount);
+        if (newOrders.length > 0) notifyNewOrders(newOrders);
         void refreshOrderCount();
       } catch (error) {
         if (active) console.error("Erro ao verificar novos pedidos:", error);
@@ -203,10 +422,16 @@ export default function App() {
       socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectionError);
       socket.disconnect();
-      setMessageNotifications([]);
+      toast.dismiss(MESSAGE_TOAST_ID);
       setMessageVersions({});
     };
-  }, [isAuthenticated, loading, refreshOrderCount]);
+  }, [
+    isAuthenticated,
+    loading,
+    refreshOrderCount,
+    notificationStorageKey,
+    notificationStore.storageKey,
+  ]);
 
   if (loading) {
     return null;
@@ -214,7 +439,7 @@ export default function App() {
 
   return (
     <>
-      <ToastContainer />
+      <ToastContainer style={{ width: "min(420px, calc(100vw - 24px))" }} />
       <Routes>
         <Route
           path="/login"
@@ -224,7 +449,10 @@ export default function App() {
         <Route
           element={
             isAuthenticated ? (
-              <DashboardLayout messageNotifications={messageNotifications} />
+              <DashboardLayout
+                messageNotifications={messageNotifications}
+                onClearNotifications={clearMessageNotifications}
+              />
             ) : (
               <Navigate to="/login" />
             )

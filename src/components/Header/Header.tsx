@@ -9,11 +9,16 @@ import type { MessageNotification } from "../../types/chat-notifications";
 type HeaderProps = {
   title: string;
   messageNotifications: MessageNotification[];
+  onClearNotifications: () => void;
 };
 
 const STATUS_REFRESH_INTERVAL_MS = 60_000;
 
-export function Header({ title, messageNotifications }: HeaderProps) {
+export function Header({
+  title,
+  messageNotifications,
+  onClearNotifications,
+}: HeaderProps) {
   const location = useLocation();
   const [settings, setSettings] = useState<SystemSettingsResponse | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
@@ -165,17 +170,27 @@ export function Header({ title, messageNotifications }: HeaderProps) {
                   <strong>Mensagens</strong>
                   <span>{unreadCount} não lidas</span>
                 </div>
-                <button
-                  type="button"
-                  className={styles.closeNotifications}
-                  aria-label="Fechar notificações"
-                  onClick={() => {
-                    setNotificationsOpen(false);
-                    notificationButtonRef.current?.focus();
-                  }}
-                >
-                  <FiX />
-                </button>
+                <div className={styles.notificationActions}>
+                  <button
+                    type="button"
+                    className={styles.clearNotifications}
+                    onClick={onClearNotifications}
+                    disabled={messageNotifications.length === 0}
+                  >
+                    Apagar todas
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.closeNotifications}
+                    aria-label="Fechar notificações"
+                    onClick={() => {
+                      setNotificationsOpen(false);
+                      notificationButtonRef.current?.focus();
+                    }}
+                  >
+                    <FiX />
+                  </button>
+                </div>
               </div>
               {messageNotifications.length === 0 ? (
                 <p className={styles.notificationEmpty}>
@@ -193,9 +208,10 @@ export function Header({ title, messageNotifications }: HeaderProps) {
                     >
                       <div className={styles.messageHeading}>
                         <strong>
-                          {message.read
-                            ? "Mensagem do cliente"
-                            : "Nova mensagem"}
+                          {message.customerName?.trim() ||
+                            (message.read
+                              ? "Mensagem do cliente"
+                              : "Nova mensagem")}
                         </strong>
                         <time dateTime={message.createdAt}>
                           {new Date(message.createdAt).toLocaleTimeString(

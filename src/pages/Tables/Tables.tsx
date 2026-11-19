@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { Bike, Check, FlaskConical, Plus, ShoppingBag } from "lucide-react";
 import { MdOutlineTableRestaurant } from "react-icons/md";
@@ -39,6 +39,7 @@ function getRequestError(error: unknown, fallback: string) {
 
 export default function Tables({ refreshKey }: TablesProps) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tables, setTables] = useState<TableResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +107,20 @@ export default function Tables({ refreshKey }: TablesProps) {
   useEffect(() => {
     void loadTables();
   }, [refreshKey]);
+
+  useEffect(() => {
+    const orderId = searchParams.get("orderId");
+    if (!orderId || loading || error) return;
+    const timeoutId = window.setTimeout(() => {
+      const tab = tabs.find((current) => current.type === "table" && current.orders.some((order) => order.id === orderId));
+      if (tab) setSelectedTabId(tab.id);
+      else setOpenTableError("A comanda deste pedido não foi encontrada ou já foi encerrada.");
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("orderId");
+      setSearchParams(nextParams, { replace: true });
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [searchParams, setSearchParams, loading, error, tabs]);
 
   async function openTable(tableId: string) {
     if (openingTable.current) return;

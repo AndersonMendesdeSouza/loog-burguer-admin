@@ -7,6 +7,7 @@ import type { MessageNotification } from "../../types/chat-notifications";
 
 type DashboardLayoutProps = {
   messageNotifications: MessageNotification[];
+  onClearNotifications: () => void;
 };
 
 function getHeaderTitle(pathname: string) {
@@ -25,6 +26,7 @@ function getHeaderTitle(pathname: string) {
 
 export function DashboardLayout({
   messageNotifications,
+  onClearNotifications,
 }: DashboardLayoutProps) {
   const location = useLocation();
 
@@ -36,6 +38,7 @@ export function DashboardLayout({
         <Header
           title={getHeaderTitle(location.pathname)}
           messageNotifications={messageNotifications}
+          onClearNotifications={onClearNotifications}
         />
         <main
           key={location.pathname}
