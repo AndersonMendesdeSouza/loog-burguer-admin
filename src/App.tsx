@@ -21,6 +21,7 @@ import {
 } from "./utils/notificationSound";
 import { socket } from "./service/gatway";
 import { ChatMessageSenderType } from "./dtos/enums/chat-message-sender-type.enum";
+import { OrderStatusEnum } from "./dtos/enums/orders-status.enum";
 import type {
   MessageCreatedEvent,
   MessageNotification,
@@ -156,6 +157,9 @@ export default function App() {
   const notificationStorageKey =
     isAuthenticated && !loading ? getNotificationStorageKey() : null;
   const [ordersVersion, setOrdersVersion] = useState(0);
+  const [orderStatusVersions, setOrderStatusVersions] = useState<
+    Record<string, number>
+  >({});
   const [messageVersions, setMessageVersions] = useState<
     Record<string, number>
   >({});
@@ -273,6 +277,7 @@ export default function App() {
     let isCheckingOrders = false;
     let latestMessageToastSequence = 0;
     const knownOrderIds = new Set<string>();
+    const notifiedCanceledOrderIds = new Set<string>();
     const knownMessageIds = new Set(
       loadMessageNotifications(notificationStorageKey).map((message) => message.id),
     );
@@ -293,6 +298,60 @@ export default function App() {
 
     function handleConnectionError(error: Error) {
       console.error("Erro ao conectar às notificações de pedidos:", error);
+    }
+
+    async function handleOrderStatus(orderId: string) {
+      if (!active || typeof orderId !== "string" || !orderId) return;
+
+      setOrdersVersion((version) => version + 1);
+      setOrderStatusVersions((current) => ({
+        ...current,
+        [orderId]: (current[orderId] ?? 0) + 1,
+      }));
+      void refreshOrderCount();
+
+      try {
+        const order = await OrderService.findById(orderId);
+        if (
+          !active ||
+          order.status !== OrderStatusEnum.CANCELED ||
+          notifiedCanceledOrderIds.has(orderId)
+        ) {
+          return;
+        }
+
+        notifiedCanceledOrderIds.add(orderId);
+        const orderLabel = `Pedido #${String(order.code).padStart(4, "0")}`;
+        const customerName = order.customerName?.trim();
+        let description = `${orderLabel} foi cancelado.`;
+        if (customerName) {
+          description = `${orderLabel} de ${customerName} foi cancelado.`;
+        }
+
+        void playNotificationSound();
+        toast(
+          ({ closeToast }) => (
+            <NotificationToast
+              kind="canceled"
+              title="Pedido cancelado"
+              subtitle={orderLabel}
+              description={description}
+              href={`/orders-details/${encodeURIComponent(order.id)}`}
+              actionLabel="Ver pedido"
+              onClose={closeToast}
+            />
+          ),
+          {
+            ...notificationToastOptions,
+            toastId: `canceled-order-${orderId}`,
+            autoClose: 5000,
+            pauseOnHover: false,
+            pauseOnFocusLoss: false,
+          },
+        );
+      } catch (error) {
+        console.error("Não foi possível consultar a atualização do pedido:", error);
+      }
     }
 
     async function handleNewMessage(event: MessageCreatedEvent) {
@@ -378,6 +437,7 @@ export default function App() {
 
     function handleConnect() {
       setConnectionVersion((version) => version + 1);
+      setOrdersVersion((version) => version + 1);
       void checkForNewOrders();
     }
 
@@ -409,6 +469,7 @@ export default function App() {
     }
 
     socket.on("order.created", handleNewOrder);
+    socket.on("order-status.created", handleOrderStatus);
     socket.on("message.created", handleNewMessage);
     socket.on("connect", handleConnect);
     socket.on("connect_error", handleConnectionError);
@@ -418,6 +479,7 @@ export default function App() {
     return () => {
       active = false;
       socket.off("order.created", handleNewOrder);
+      socket.off("order-status.created", handleOrderStatus);
       socket.off("message.created", handleNewMessage);
       socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectionError);
@@ -480,6 +542,7 @@ export default function App() {
             path="/orders-details/:id"
             element={
               <OrderDetails
+                orderStatusVersions={orderStatusVersions}
                 messageVersions={messageVersions}
                 connectionVersion={connectionVersion}
                 onMessagesRead={markMessagesRead}

@@ -26,6 +26,7 @@ type OrderDetailsCssVars = CSSProperties & {
 };
 
 type OrderDetailsProps = {
+  orderStatusVersions: Record<string, number>;
   messageVersions: Record<string, number>;
   connectionVersion: number;
   onMessagesRead: (orderId: string, messageIds: string[]) => void;
@@ -195,6 +196,7 @@ function sortChatMessages(messages: ChatMessageResponseDto[]) {
 }
 
 export default function OrderDetails({
+  orderStatusVersions,
   messageVersions,
   connectionVersion,
   onMessagesRead,
@@ -217,6 +219,8 @@ export default function OrderDetails({
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
   const messageVersion = id ? (messageVersions[id] ?? 0) : 0;
   const loadedOrderId = order?.id;
+  const orderStatusVersion = id ? (orderStatusVersions[id] ?? 0) : 0;
+  const canUseChat = Boolean(order?.userId);
 
   useEffect(() => {
     if (!id) {
@@ -251,14 +255,14 @@ export default function OrderDetails({
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, orderStatusVersion, connectionVersion]);
 
   useEffect(() => {
     setChatMessages(sortChatMessages(order?.chat?.messages || []));
   }, [order?.chat?.messages]);
 
   useEffect(() => {
-    if (!id || loadedOrderId !== id) return;
+    if (!id || loadedOrderId !== id || !canUseChat) return;
     let active = true;
     const orderId = id;
 
@@ -287,7 +291,14 @@ export default function OrderDetails({
     return () => {
       active = false;
     };
-  }, [id, loadedOrderId, messageVersion, connectionVersion, onMessagesRead]);
+  }, [
+    id,
+    loadedOrderId,
+    canUseChat,
+    messageVersion,
+    connectionVersion,
+    onMessagesRead,
+  ]);
 
   useEffect(() => {
     if (isLoading || location.hash !== "#order-chat") return;
@@ -400,7 +411,7 @@ export default function OrderDetails({
     event.preventDefault();
 
     const text = chatDraft.trim();
-    if (!text || !order || isSendingChatMessage) return;
+    if (!text || !order || !canUseChat || isSendingChatMessage) return;
 
     setIsSendingChatMessage(true);
 
@@ -676,7 +687,7 @@ export default function OrderDetails({
                   <span className={styles.cardTitleMuted}>CHAT DO PEDIDO</span>
                 </div>
                 <span className={styles.cardMeta}>
-                  {chatMessages.length} mensagens
+                  {canUseChat ? `${chatMessages.length} mensagens` : "Indisponível"}
                 </span>
               </div>
 
@@ -685,7 +696,16 @@ export default function OrderDetails({
                 className={styles.chatMessages}
                 aria-label="Mensagens do pedido"
               >
-                {chatMessages.length ? (
+                {!canUseChat && (
+                  <div
+                    id="order-chat-unavailable"
+                    className={styles.chatEmpty}
+                    role="status"
+                  >
+                    Chat indisponível: pedido realizado sem login.
+                  </div>
+                )}
+                {canUseChat && (chatMessages.length ? (
                   chatMessages.map((message) => {
                     const isAdmin =
                       message.senderType === ChatMessageSenderType.ADMIN;
@@ -717,15 +737,18 @@ export default function OrderDetails({
                   <div className={styles.chatEmpty}>
                     Nenhuma mensagem encontrada.
                   </div>
-                )}
+                ))}
               </div>
 
               <form className={styles.chatForm} onSubmit={handleChatSubmit}>
                 <input
                   className={styles.chatInput}
-                  value={chatDraft}
+                  value={canUseChat ? chatDraft : ""}
                   onChange={(event) => setChatDraft(event.target.value)}
-                  disabled={isSendingChatMessage}
+                  disabled={!canUseChat || isSendingChatMessage}
+                  aria-describedby={
+                    !canUseChat ? "order-chat-unavailable" : undefined
+                  }
                   placeholder={
                     isSendingChatMessage
                       ? "Enviando mensagem..."
@@ -735,7 +758,9 @@ export default function OrderDetails({
                 <button
                   type="submit"
                   className={styles.chatSendButton}
-                  disabled={isSendingChatMessage || !chatDraft.trim()}
+                  disabled={
+                    !canUseChat || isSendingChatMessage || !chatDraft.trim()
+                  }
                 >
                   Enviar
                 </button>

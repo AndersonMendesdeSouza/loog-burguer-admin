@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   Bike,
+  CircleX,
   MessageSquare,
   ShoppingBag,
   UtensilsCrossed,
@@ -10,7 +11,7 @@ import { Link } from "react-router-dom";
 import styles from "./NotificationToast.module.css";
 
 type NotificationToastProps = {
-  kind: "delivery" | "table" | "pickup" | "message";
+  kind: "delivery" | "table" | "pickup" | "message" | "canceled";
   title: string;
   subtitle: string;
   description: string;
@@ -33,6 +34,7 @@ export function NotificationToast({
     table: UtensilsCrossed,
     pickup: ShoppingBag,
     message: MessageSquare,
+    canceled: CircleX,
   };
   const Icon = icons[kind];
 
