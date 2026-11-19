@@ -1,7 +1,7 @@
 import { getOrderStatus, isTableOrder } from "../../utils/orderStatus";
 import type { CSSProperties, FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ChevronRight, UtensilsCrossed } from "lucide-react";
 import styles from "./OrderDetails.module.css";
 import Colors from "../../themes/Colors";
@@ -14,7 +14,6 @@ import type { PaymentMethodEnum } from "../../dtos/enums/payment-method.enum";
 import { formatOrderCode } from "../../utils/formatOrderCode";
 import type { ChatMessageResponseDto } from "../../dtos/response/chat-message-response.dto";
 import { useOrderCount } from "../../contexts/OrderCountContext";
-import { socket } from "../../service/gatway";
 
 type TimelineStatus = "done" | "current" | "pending";
 
@@ -26,7 +25,11 @@ type OrderDetailsCssVars = CSSProperties & {
   "--highlight": string;
 };
 
-const CHAT_POLLING_INTERVAL_MS = 10_000;
+type OrderDetailsProps = {
+  messageVersions: Record<string, number>;
+  connectionVersion: number;
+  onMessagesRead: (orderId: string, messageIds: string[]) => void;
+};
 
 const orderActions: Partial<
   Record<
@@ -191,8 +194,13 @@ function sortChatMessages(messages: ChatMessageResponseDto[]) {
   );
 }
 
-export default function OrderDetails() {
+export default function OrderDetails({
+  messageVersions,
+  connectionVersion,
+  onMessagesRead,
+}: OrderDetailsProps) {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const { refreshOrderCount } = useOrderCount();
   const [order, setOrder] = useState<OrderResponseDto | null>(null);
@@ -207,13 +215,9 @@ export default function OrderDetails() {
   );
   const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
+  const messageVersion = id ? (messageVersions[id] ?? 0) : 0;
+  const loadedOrderId = order?.id;
 
-  useEffect(() => {
-    function handleNewOrder(){
-      alert("Oppaaa foi em ")
-    }
-    socket.on("message.created", handleNewOrder);
-  })
   useEffect(() => {
     if (!id) {
       setError("Pedido nao informado.");
@@ -254,51 +258,46 @@ export default function OrderDetails() {
   }, [order?.chat?.messages]);
 
   useEffect(() => {
-    if (!id) return;
-
+    if (!id || loadedOrderId !== id) return;
     let active = true;
-    let timeoutId: number | undefined;
+    const orderId = id;
 
     async function loadChat() {
       try {
-        const chat = await ChatService.findByOrderId(id as string);
+        const chat = await ChatService.findByOrderId(orderId);
         if (!active) return;
-
         const messages = sortChatMessages(chat.messages || []);
-
         setOrder((current) =>
-          current
-            ? {
-              ...current,
-              chatId: chat.id,
-              chat: {
-                ...chat,
-                messages,
-              },
-            }
+          current?.id === orderId
+            ? { ...current, chatId: chat.id, chat: { ...chat, messages } }
             : current,
         );
         setChatMessages(messages);
+        onMessagesRead(
+          orderId,
+          messages.map((message) => message.id),
+        );
       } catch (error) {
-        if (active) {
-          console.error("Nao foi possivel carregar o chat do pedido:", error);
-        }
-      } finally {
-        if (active) {
-          timeoutId = window.setTimeout(loadChat, CHAT_POLLING_INTERVAL_MS);
-        }
+        if (active)
+          console.error("Não foi possível carregar o chat do pedido:", error);
       }
     }
 
     void loadChat();
-
     return () => {
       active = false;
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
     };
-  }, [id]);
+  }, [id, loadedOrderId, messageVersion, connectionVersion, onMessagesRead]);
+
+  useEffect(() => {
+    if (isLoading || location.hash !== "#order-chat") return;
+    const frame = window.requestAnimationFrame(() => {
+      document
+        .getElementById("order-chat")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [id, isLoading, location.hash]);
 
   useEffect(() => {
     chatMessagesRef.current?.scrollTo({
@@ -413,24 +412,23 @@ export default function OrderDetails() {
         chatId: chat.id,
         text,
       });
-      const nextMessages = sortChatMessages([
-        ...(chat.messages || []),
-        createdMessage,
-      ]);
-
-      setOrder((current) =>
-        current
-          ? {
-            ...current,
-            chatId: chat.id,
-            chat: {
-              ...chat,
-              messages: nextMessages,
-            },
-          }
-          : current,
-      );
-      setChatMessages(nextMessages);
+      setOrder((current) => {
+        if (current?.id !== order.id) return current;
+        const messages =
+          current.chat?.id === chat.id
+            ? current.chat.messages
+            : chat.messages || [];
+        const nextMessages = messages.some(
+          (message) => message.id === createdMessage.id,
+        )
+          ? messages
+          : sortChatMessages([...messages, createdMessage]);
+        return {
+          ...current,
+          chatId: chat.id,
+          chat: { ...chat, messages: nextMessages },
+        };
+      });
       setChatDraft("");
     } catch {
       alert("Nao foi possivel enviar a mensagem.");
@@ -569,7 +567,7 @@ export default function OrderDetails() {
                           <div className={styles.itemPrice}>
                             {formatBRL(
                               item.totalPrice ||
-                              Number(item.unitPrice) * item.quantity,
+                                Number(item.unitPrice) * item.quantity,
                             )}
                           </div>
                         </div>
@@ -671,7 +669,7 @@ export default function OrderDetails() {
               </div>
             </div>
 
-            <div className={styles.card}>
+            <div id="order-chat" className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeaderLeft}>
                   <span className={styles.headerDot}>#</span>
@@ -695,10 +693,11 @@ export default function OrderDetails() {
                     return (
                       <article
                         key={message.id}
-                        className={`${styles.chatBubble} ${isAdmin
+                        className={`${styles.chatBubble} ${
+                          isAdmin
                             ? styles.chatBubbleAdmin
                             : styles.chatBubbleCustomer
-                          }`}
+                        }`}
                       >
                         <div className={styles.chatAuthor}>
                           {message.senderType === ChatMessageSenderType.SYSTEM
@@ -811,29 +810,32 @@ export default function OrderDetails() {
                       >
                         <div className={styles.tlLeft}>
                           <div
-                            className={`${styles.tlDot} ${h.status === "done"
+                            className={`${styles.tlDot} ${
+                              h.status === "done"
                                 ? styles.tlDotDone
                                 : h.status === "current"
                                   ? styles.tlDotCurrent
                                   : styles.tlDotPending
-                              }`}
+                            }`}
                           />
                           {!isLast ? (
                             <div
-                              className={`${styles.tlLine} ${h.status === "done"
+                              className={`${styles.tlLine} ${
+                                h.status === "done"
                                   ? styles.tlLineDone
                                   : styles.tlLinePending
-                                }`}
+                              }`}
                             />
                           ) : null}
                         </div>
 
                         <div className={styles.tlContent}>
                           <div
-                            className={`${styles.tlLabel} ${h.status === "pending"
+                            className={`${styles.tlLabel} ${
+                              h.status === "pending"
                                 ? styles.tlLabelPending
                                 : ""
-                              }`}
+                            }`}
                           >
                             {h.label}
                           </div>

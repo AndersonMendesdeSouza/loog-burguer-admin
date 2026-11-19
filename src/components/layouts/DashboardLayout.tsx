@@ -3,6 +3,11 @@ import { Sidebar } from "../Sidebar/Sidebar";
 import { Header } from "../Header/Header";
 import styles from "./DashboardLayout.module.css";
 import { Suspense } from "react";
+import type { MessageNotification } from "../../types/chat-notifications";
+
+type DashboardLayoutProps = {
+  messageNotifications: MessageNotification[];
+};
 
 function getHeaderTitle(pathname: string) {
   if (pathname.startsWith("/pedidos")) return "Pedidos";
@@ -18,7 +23,9 @@ function getHeaderTitle(pathname: string) {
   return "Painel";
 }
 
-export function DashboardLayout() {
+export function DashboardLayout({
+  messageNotifications,
+}: DashboardLayoutProps) {
   const location = useLocation();
 
   return (
@@ -26,9 +33,22 @@ export function DashboardLayout() {
       <Sidebar />
 
       <div className={styles.main}>
-        <Header title={getHeaderTitle(location.pathname)} />
-        <main key={location.pathname} className={styles.content} data-enter="page">
-          <Suspense fallback={<div className={styles.loading} role="status">Carregando tela...</div>}>
+        <Header
+          title={getHeaderTitle(location.pathname)}
+          messageNotifications={messageNotifications}
+        />
+        <main
+          key={location.pathname}
+          className={styles.content}
+          data-enter="page"
+        >
+          <Suspense
+            fallback={
+              <div className={styles.loading} role="status">
+                Carregando tela...
+              </div>
+            }
+          >
             <Outlet />
           </Suspense>
         </main>

@@ -242,7 +242,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
-export function Dashboard() {
+type DashboardProps = { refreshKey: number };
+
+export function Dashboard({ refreshKey }: DashboardProps) {
   const [orders, setOrders] = useState<OrderResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -272,7 +274,7 @@ export function Dashboard() {
         console.error("Erro ao carregar painel:", error);
         if (active)
           setError(
-            "Não foi possível carregar o painel. Tentaremos novamente em instantes.",
+            "Não foi possível carregar o painel. Recarregue a página para tentar novamente.",
           );
       } finally {
         requestInProgress = false;
@@ -281,13 +283,11 @@ export function Dashboard() {
     }
 
     void loadOrders();
-    const intervalId = window.setInterval(loadOrders, 10000);
 
     return () => {
       active = false;
-      window.clearInterval(intervalId);
     };
-  }, []);
+  }, [refreshKey]);
 
   const today = getDateKey(new Date());
   const invalidDateRange =

@@ -9,7 +9,7 @@ import { Customers } from "./pages/Customers/Customers";
 import { useAuth } from "./contexts/AuthContext";
 import { useOrderCount } from "./contexts/OrderCountContext";
 import { Config } from "./pages/Config/Config";
-import { lazy, useEffect, useState } from "react";
+import { lazy, useCallback, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { OrderService } from "./service/order.service";
@@ -19,9 +19,22 @@ import {
   unlockNotificationSound,
 } from "./utils/notificationSound";
 import { socket } from "./service/gatway";
+import { ChatMessageSenderType } from "./dtos/enums/chat-message-sender-type.enum";
+import type {
+  MessageCreatedEvent,
+  MessageNotification,
+} from "./types/chat-notifications";
 
-const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard").then((module) => ({ default: module.Dashboard })));
-const Reports = lazy(() => import("./pages/Reports/Reports").then((module) => ({ default: module.Reports })));
+const Dashboard = lazy(() =>
+  import("./pages/Dashboard/Dashboard").then((module) => ({
+    default: module.Dashboard,
+  })),
+);
+const Reports = lazy(() =>
+  import("./pages/Reports/Reports").then((module) => ({
+    default: module.Reports,
+  })),
+);
 const Tables = lazy(() => import("./pages/Tables/Tables"));
 
 function showNewOrderAlert(newOrdersCount: number) {
@@ -45,6 +58,34 @@ export default function App() {
   const { isAuthenticated, loading } = useAuth();
   const { refreshOrderCount } = useOrderCount();
   const [ordersVersion, setOrdersVersion] = useState(0);
+  const [messageVersions, setMessageVersions] = useState<
+    Record<string, number>
+  >({});
+  const [connectionVersion, setConnectionVersion] = useState(0);
+  const [messageNotifications, setMessageNotifications] = useState<
+    MessageNotification[]
+  >([]);
+
+  const markMessagesRead = useCallback(
+    (orderId: string, messageIds: string[]) => {
+      const loadedIds = new Set(messageIds);
+      setMessageNotifications((current) => {
+        const hasUnread = current.some(
+          (notification) =>
+            notification.orderId === orderId &&
+            !notification.read &&
+            loadedIds.has(notification.id),
+        );
+        if (!hasUnread) return current;
+        return current.map((notification) =>
+          notification.orderId === orderId && loadedIds.has(notification.id)
+            ? { ...notification, read: true }
+            : notification,
+        );
+      });
+    },
+    [],
+  );
   useEffect(() => {
     if (!isAuthenticated || loading) return;
 
@@ -71,6 +112,7 @@ export default function App() {
     let initialLoadFinished = false;
     let isCheckingOrders = false;
     const knownOrderIds = new Set<string>();
+    const knownMessageIds = new Set<string>();
 
     function notifyNewOrders(count: number) {
       void playNotificationSound();
@@ -88,6 +130,36 @@ export default function App() {
 
     function handleConnectionError(error: Error) {
       console.error("Erro ao conectar às notificações de pedidos:", error);
+    }
+
+    function handleNewMessage(event: MessageCreatedEvent) {
+      if (!active || !event?.orderId || !event.message?.id) return;
+      const message = event.message;
+      if (knownMessageIds.has(message.id)) return;
+      knownMessageIds.add(message.id);
+
+      setMessageVersions((current) => ({
+        ...current,
+        [event.orderId]: (current[event.orderId] ?? 0) + 1,
+      }));
+      if (message.senderType !== ChatMessageSenderType.CUSTOMER) return;
+
+      setMessageNotifications((current) => [
+        {
+          id: message.id,
+          orderId: event.orderId,
+          text: message.text,
+          createdAt: message.createdAt,
+          read: false,
+        },
+        ...current,
+      ]);
+      void playNotificationSound();
+    }
+
+    function handleConnect() {
+      setConnectionVersion((version) => version + 1);
+      void checkForNewOrders();
     }
 
     async function checkForNewOrders() {
@@ -118,7 +190,8 @@ export default function App() {
     }
 
     socket.on("order.created", handleNewOrder);
-    socket.on("connect", checkForNewOrders);
+    socket.on("message.created", handleNewMessage);
+    socket.on("connect", handleConnect);
     socket.on("connect_error", handleConnectionError);
     socket.connect();
     void checkForNewOrders();
@@ -126,9 +199,12 @@ export default function App() {
     return () => {
       active = false;
       socket.off("order.created", handleNewOrder);
-      socket.off("connect", checkForNewOrders);
+      socket.off("message.created", handleNewMessage);
+      socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectionError);
       socket.disconnect();
+      setMessageNotifications([]);
+      setMessageVersions({});
     };
   }, [isAuthenticated, loading, refreshOrderCount]);
 
@@ -147,19 +223,41 @@ export default function App() {
 
         <Route
           element={
-            isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" />
+            isAuthenticated ? (
+              <DashboardLayout messageNotifications={messageNotifications} />
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         >
           <Route path="/" element={<Navigate to="/dashboard" />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/pedidos" element={<Orders refreshKey={ordersVersion} />} />
-          <Route path="/mesas-comandas" element={<Tables refreshKey={ordersVersion} />} />
+          <Route
+            path="/dashboard"
+            element={<Dashboard refreshKey={ordersVersion} />}
+          />
+          <Route
+            path="/pedidos"
+            element={<Orders refreshKey={ordersVersion} />}
+          />
+          <Route
+            path="/mesas-comandas"
+            element={<Tables refreshKey={ordersVersion} />}
+          />
           <Route path="/produtos" element={<Products />} />
           <Route path="/clientes" element={<Customers />} />
           <Route path="/relatorios" element={<Reports />} />
           <Route path="/configuracoes" element={<Config />} />
           <Route path="/product-details/:id?" element={<ProductsDetails />} />
-          <Route path="/orders-details/:id" element={<OrderDetails />} />
+          <Route
+            path="/orders-details/:id"
+            element={
+              <OrderDetails
+                messageVersions={messageVersions}
+                connectionVersion={connectionVersion}
+                onMessagesRead={markMessagesRead}
+              />
+            }
+          />
         </Route>
       </Routes>
     </>
