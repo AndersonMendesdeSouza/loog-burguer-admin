@@ -92,16 +92,50 @@
 .receiptDialog .dialogFooter { flex-wrap: wrap; }
 .receiptDialog .dialogFooter > button { flex-basis: 110px; }
 
+.printReceipt { position: absolute; top: 0; left: -10000px; visibility: hidden; pointer-events: none; box-sizing: border-box; width: 80mm; margin: 0; padding: 4mm 5mm; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; line-height: 1.35; color-scheme: light; }
+.printBrand { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.printBrand h3 { margin: 1mm 0 0; font-size: 17pt; font-weight: 800; letter-spacing: 1px; line-height: 1.15; }
+.printBrand p { margin: 1mm 0 0; font-size: 7.5pt; letter-spacing: 1.5px; }
+.printHeading { margin-top: 3mm; padding: 2.5mm 0; border-top: 1px dashed black; border-bottom: 1px dashed black; text-align: center; }
+.printHeading p { margin: 0 0 1mm; font-size: 8pt; letter-spacing: 0.5px; }
+.printHeading strong { display: block; overflow-wrap: anywhere; font-size: 13pt; }
+.printMeta { margin: 3mm 0; font-size: 8pt; }
+.printMeta > div { display: flex; justify-content: space-between; gap: 2mm; margin: 1mm 0; }
+.printMeta dt { flex-shrink: 0; }
+.printMeta dd { margin: 0; overflow-wrap: anywhere; text-align: right; font-variant-numeric: tabular-nums; }
+.printTable { width: 100%; border-collapse: collapse; table-layout: fixed; font: inherit; }
+.printTable caption { padding: 2mm 0; border-top: 1px dashed black; text-align: left; font-size: 8pt; font-weight: 700; }
+.printTable th { padding: 0 0 2mm; border-bottom: 1px dashed black; font-size: 7.5pt; font-weight: 400; }
+.printTable th, .printTable td { text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.printTable th:first-child { width: 55%; }
+.printTable td { padding: 0 0 2mm; font-variant-numeric: tabular-nums; }
+.printTable th:last-child, .printTable tr:not(.printItemName) td:last-child { text-align: right; }
+.printTable .printItemName td { padding: 2mm 0 1mm; font-weight: 700; }
+.printTable tbody { border-bottom: 1px dashed black; break-inside: avoid; }
+.printTotals { padding-top: 2mm; font-variant-numeric: tabular-nums; }
+.printTotals > div { display: flex; align-items: baseline; justify-content: space-between; gap: 2mm; padding: 1mm 0; }
+.printTotals > div > :last-child { flex-shrink: 0; text-align: right; }
+.printTotals .printGrandTotal { margin-top: 2mm; padding: 2mm 0; border-top: 1px dashed black; border-bottom: 1px dashed black; font-size: 13pt; }
+.printGrandTotal > strong:last-child { font-size: 14pt; }
+.printNotes { margin-top: 3mm; overflow-wrap: anywhere; }
+.printNotes p { margin: 1mm 0 0; white-space: pre-wrap; }
+.printFooter { margin-top: 4mm; text-align: center; break-inside: avoid; }
+.printFooter > strong { font-size: 9pt; }
+.printFooter p { margin: 1mm 0 0; font-size: 8pt; }
+.printFooter .printInfo { margin-top: 3mm; font-size: 7.5pt; }
+
 @media print {
-  :global(body):has(.receiptDialog[open]) { background: white !important; }
+  :global(html):has(.receiptDialog[open]), :global(body):has(.receiptDialog[open]), :global(body):has(.receiptDialog[open]) :global(#root) { width: auto !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: white !important; color-scheme: light; }
   :global(body):has(.receiptDialog[open]) :global(*) { visibility: hidden; }
-  .receiptDialog[open] { position: absolute; inset: 0 auto auto 0; width: 100%; max-height: none; margin: 0; padding: 16px; overflow: visible; border: 0; border-radius: 0; background: white; }
+  :global(body):has(.receiptDialog[open]) :global(#root) > :not(:has(.receiptDialog[open])):not(.receiptDialog[open]),
+  :global(body):has(.receiptDialog[open]) :global(#root) *:has(.receiptDialog[open]) > :not(:has(.receiptDialog[open])):not(.receiptDialog[open]) { display: none !important; }
+  :global(body):has(.receiptDialog[open]) :global(#root) *:has(.receiptDialog[open]) { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; transform: none !important; }
+  .receiptDialog[open] { position: absolute; inset: 0 auto auto 0; width: 80mm; max-width: none; height: auto; max-height: none; margin: 0; padding: 0; overflow: visible; border: 0; border-radius: 0; background: white; }
   .receiptDialog::backdrop { background: transparent; }
-  .receiptDialog > :not(.receipt) { display: none !important; }
-  .receiptDialog .receipt, .receiptDialog .receipt * { visibility: visible !important; color: black !important; background: white !important; }
-  .receiptDialog .receipt { margin: 0; }
-  .receiptDialog .receiptTable th, .receiptDialog .receiptTable td { border-color: #ccc; }
-  .receiptDialog .receiptTable tr { break-inside: avoid; }
+  .receiptDialog > :not(.printReceipt) { display: none !important; }
+  .receiptDialog .printReceipt { position: static; pointer-events: auto; }
+  .receiptDialog .printReceipt, .receiptDialog .printReceipt * { visibility: visible !important; color: black !important; background: white !important; }
+  .printTotals, .printNotes { break-inside: avoid; }
 }
 .otherEmpty { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px dashed var(--border-color); border-radius: 9px; color: var(--text-muted); font-size: 12px; }
 .otherEmpty p { margin: 0; }

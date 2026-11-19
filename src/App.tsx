@@ -9,19 +9,29 @@ import { Customers } from "./pages/Customers/Customers";
 import { useAuth } from "./contexts/AuthContext";
 import { useOrderCount } from "./contexts/OrderCountContext";
 import { Config } from "./pages/Config/Config";
-import { lazy, useEffect, useRef } from "react";
+import { lazy, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { OrderService } from "./service/order.service";
+import type { OrderResponseDto } from "./dtos/response/orders-response.dto";
 import {
   playNotificationSound,
   unlockNotificationSound,
 } from "./utils/notificationSound";
+import { socket } from "./service/order.gatway";
 
 const ORDER_POLLING_INTERVAL_MS = 10_000;
 
-const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard").then((module) => ({ default: module.Dashboard })));
-const Reports = lazy(() => import("./pages/Reports/Reports").then((module) => ({ default: module.Reports })));
+const Dashboard = lazy(() =>
+  import("./pages/Dashboard/Dashboard").then((module) => ({
+    default: module.Dashboard,
+  })),
+);
+const Reports = lazy(() =>
+  import("./pages/Reports/Reports").then((module) => ({
+    default: module.Reports,
+  })),
+);
 const Tables = lazy(() => import("./pages/Tables/Tables"));
 
 function showNewOrderAlert(newOrdersCount: number) {
@@ -44,8 +54,7 @@ function showNewOrderAlert(newOrdersCount: number) {
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
   const { refreshOrderCount } = useOrderCount();
-  const previousOrderIdsRef = useRef<Set<string> | null>(null);
-
+  const [ordersVersion, setOrdersVersion] = useState(0);
   useEffect(() => {
     if (!isAuthenticated || loading) return;
 
@@ -64,38 +73,64 @@ export default function App() {
 
   useEffect(() => {
     if (!isAuthenticated || loading) {
-      previousOrderIdsRef.current = null;
+      socket.disconnect();
       return;
     }
 
     let active = true;
+    let initialLoadFinished = false;
+    let isCheckingOrders = false;
+    const knownOrderIds = new Set<string>();
+
+    function notifyNewOrders(count: number) {
+      void playNotificationSound();
+      showNewOrderAlert(count);
+      setOrdersVersion((version) => version + 1);
+    }
+
+    function handleNewOrder(order: OrderResponseDto) {
+      if (!active || !order?.id || knownOrderIds.has(order.id)) return;
+
+      knownOrderIds.add(order.id);
+      notifyNewOrders(1);
+      void refreshOrderCount();
+    }
+
+    function handleConnectionError(error: Error) {
+      console.error("Erro ao conectar às notificações de pedidos:", error);
+    }
 
     async function checkForNewOrders() {
+      if (isCheckingOrders) return;
+      isCheckingOrders = true;
+
       try {
         const orders = await OrderService.findAll();
         if (!active) return;
 
-        const currentOrderIds = new Set(orders.map((order) => order.id));
-        const previousOrderIds = previousOrderIdsRef.current;
-
-        if (previousOrderIds) {
-          const newOrdersCount = orders.filter(
-            (order) => !previousOrderIds.has(order.id),
-          ).length;
-
-          if (orders.length > previousOrderIds.size || newOrdersCount > 0) {
-            void playNotificationSound();
-            showNewOrderAlert(Math.max(newOrdersCount, 1));
+        let newOrdersCount = 0;
+        for (const order of orders) {
+          if (!knownOrderIds.has(order.id)) {
+            // A primeira consulta carrega o histórico sem notificar pedidos antigos.
+            if (initialLoadFinished) newOrdersCount += 1;
+            knownOrderIds.add(order.id);
           }
         }
 
-        previousOrderIdsRef.current = currentOrderIds;
+        initialLoadFinished = true;
+        if (newOrdersCount > 0) notifyNewOrders(newOrdersCount);
         void refreshOrderCount();
       } catch (error) {
-        console.error("Erro ao verificar novos pedidos:", error);
+        if (active) console.error("Erro ao verificar novos pedidos:", error);
+      } finally {
+        isCheckingOrders = false;
       }
     }
 
+    socket.on("order.created", handleNewOrder);
+    socket.on("connect", checkForNewOrders);
+    socket.on("connect_error", handleConnectionError);
+    socket.connect();
     void checkForNewOrders();
     const intervalId = window.setInterval(
       checkForNewOrders,
@@ -105,6 +140,10 @@ export default function App() {
     return () => {
       active = false;
       window.clearInterval(intervalId);
+      socket.off("order.created", handleNewOrder);
+      socket.off("connect", checkForNewOrders);
+      socket.off("connect_error", handleConnectionError);
+      socket.disconnect();
     };
   }, [isAuthenticated, loading, refreshOrderCount]);
 
@@ -128,7 +167,10 @@ export default function App() {
         >
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/pedidos" element={<Orders />} />
+          <Route
+            path="/pedidos"
+            element={<Orders refreshKey={ordersVersion} />}
+          />
           <Route path="/mesas-comandas" element={<Tables />} />
           <Route path="/produtos" element={<Products />} />
           <Route path="/clientes" element={<Customers />} />

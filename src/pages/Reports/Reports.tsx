@@ -1,3 +1,4 @@
+import { getOrderStatus, isFinishedOrder } from "../../utils/orderStatus";
 import Colors from "../../themes/Colors";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -70,6 +71,7 @@ const STATUS_LABELS: Record<OrderStatusEnum, string> = {
   RECEIVED: "Novos",
   KITCHEN_ACCEPTED: "Cozinha",
   PREPARING: "Preparo",
+  READY: "Prontos",
   OUT_FOR_DELIVERY: "Saiu",
   ON_ROUTE: "Rota",
   DELIVERED: "Entregues",
@@ -80,6 +82,7 @@ const STATUS_COLORS: Record<OrderStatusEnum, string> = {
   RECEIVED: Colors.Highlight.primary,
   KITCHEN_ACCEPTED: "#60a5fa",
   PREPARING: "#3b82f6",
+  READY: "#00c853",
   OUT_FOR_DELIVERY: "#fb923c",
   ON_ROUTE: "#f97316",
   DELIVERED: "#00c853",
@@ -160,10 +163,6 @@ function isCanceled(order: OrderResponseDto): boolean {
   return order.status === OrderStatusEnum.CANCELED;
 }
 
-function isDelivered(order: OrderResponseDto): boolean {
-  return order.status === OrderStatusEnum.DELIVERED;
-}
-
 function getPeriodStart(period: PeriodKey): Date | null {
   if (period === "all") return null;
 
@@ -218,7 +217,11 @@ function getRevenueByDay(
   today.setHours(0, 0, 0, 0);
   const points: RevenuePoint[] = [];
 
-  for (const day = new Date(start); day <= today; day.setDate(day.getDate() + 1)) {
+  for (
+    const day = new Date(start);
+    day <= today;
+    day.setDate(day.getDate() + 1)
+  ) {
     const sortDate = getDateKey(day);
     const point = map.get(sortDate);
     points.push({
@@ -290,11 +293,13 @@ function exportOrdersCsv(orders: OrderResponseDto[]) {
   ]);
   const csv = [headers, ...rows]
     .map((row) =>
-      row.map((cell) => {
-        let text = String(cell);
-        if (/^[=+\-@\t\r\n]/.test(text)) text = `'${text}`;
-        return `"${text.replace(/"/g, '""')}"`;
-      }).join(";"),
+      row
+        .map((cell) => {
+          let text = String(cell);
+          if (/^[=+\-@\t\r\n]/.test(text)) text = `'${text}`;
+          return `"${text.replace(/"/g, '""')}"`;
+        })
+        .join(";"),
     )
     .join("\r\n");
   const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
@@ -358,7 +363,12 @@ export function Reports() {
 
         if (!active) return;
 
-        setOrders(ordersData);
+        setOrders(
+          ordersData.map((order) => ({
+            ...order,
+            status: getOrderStatus(order),
+          })),
+        );
         setProducts(productsData);
         setCustomers(customersData);
       } catch (err) {
@@ -393,10 +403,10 @@ export function Reports() {
     0,
   );
   const revenue = revenueInCents / 100;
-  const deliveredOrders = filteredOrders.filter(isDelivered).length;
+  const completedOrders = filteredOrders.filter(isFinishedOrder).length;
   const canceledOrders = filteredOrders.filter(isCanceled).length;
   const completionRate = filteredOrders.length
-    ? (deliveredOrders / filteredOrders.length) * 100
+    ? (completedOrders / filteredOrders.length) * 100
     : 0;
   const cancellationRate = filteredOrders.length
     ? (canceledOrders / filteredOrders.length) * 100
@@ -434,8 +444,9 @@ export function Reports() {
               <button
                 key={item.key}
                 type="button"
-                className={`${styles.periodButton} ${period === item.key ? styles.periodButtonActive : ""
-                  }`}
+                className={`${styles.periodButton} ${
+                  period === item.key ? styles.periodButtonActive : ""
+                }`}
                 onClick={() => setPeriod(item.key)}
                 aria-pressed={period === item.key}
               >
@@ -457,12 +468,15 @@ export function Reports() {
       </div>
 
       {loading ? (
-        <div className={styles.state} role="status">Carregando relatórios...</div>
+        <div className={styles.state} role="status">
+          Carregando relatórios...
+        </div>
       ) : error ? (
-        <div className={styles.alert} role="alert">{error}</div>
+        <div className={styles.alert} role="alert">
+          {error}
+        </div>
       ) : (
         <>
-
           <div className={styles.metrics}>
             <MetricCard
               icon={FiTrendingUp}
@@ -516,21 +530,42 @@ export function Reports() {
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={revenueByDay}>
                       <defs>
-                        <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
-                          <stop offset="5%" stopColor={Colors.Highlight.primary} stopOpacity={0.36} />
-                          <stop offset="95%" stopColor={Colors.Highlight.primary} stopOpacity={0} />
+                        <linearGradient
+                          id="revenueGradient"
+                          x1="0"
+                          x2="0"
+                          y1="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor={Colors.Highlight.primary}
+                            stopOpacity={0.36}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor={Colors.Highlight.primary}
+                            stopOpacity={0}
+                          />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid stroke={Colors.Borders.primary} vertical={false} />
+                      <CartesianGrid
+                        stroke={Colors.Borders.primary}
+                        vertical={false}
+                      />
                       <XAxis
                         dataKey="sortDate"
-                        tickFormatter={(value) => formatShortDate(`${value}T00:00:00`)}
+                        tickFormatter={(value) =>
+                          formatShortDate(`${value}T00:00:00`)
+                        }
                         stroke={Colors.Texts.secondary}
                         minTickGap={24}
                       />
                       <YAxis
                         stroke={Colors.Texts.secondary}
-                        tickFormatter={(value) => formatChartCurrency(Number(value))}
+                        tickFormatter={(value) =>
+                          formatChartCurrency(Number(value))
+                        }
                         width={72}
                       />
                       <Tooltip
@@ -542,7 +577,9 @@ export function Reports() {
                         }}
                         formatter={(value) => formatCurrency(Number(value))}
                         labelFormatter={(value) =>
-                          new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR")
+                          new Date(`${value}T00:00:00`).toLocaleDateString(
+                            "pt-BR",
+                          )
                         }
                       />
                       <Area
@@ -557,7 +594,9 @@ export function Reports() {
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className={styles.state}>Sem faturamento no período.</div>
+                  <div className={styles.state}>
+                    Sem faturamento no período.
+                  </div>
                 )}
               </div>
             </section>
@@ -566,7 +605,9 @@ export function Reports() {
               <div className={styles.panelHeader}>
                 <div>
                   <h2 className={styles.panelTitle}>Status dos pedidos</h2>
-                  <span className={styles.panelSubtitle}>Distribuição operacional</span>
+                  <span className={styles.panelSubtitle}>
+                    Distribuição operacional
+                  </span>
                 </div>
               </div>
 
@@ -626,8 +667,14 @@ export function Reports() {
             <div className={styles.paymentChart}>
               <div className={styles.barChart}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={paymentData} margin={{ top: 28, right: 20, bottom: 8 }}>
-                    <CartesianGrid stroke={Colors.Borders.primary} vertical={false} />
+                  <BarChart
+                    data={paymentData}
+                    margin={{ top: 28, right: 20, bottom: 8 }}
+                  >
+                    <CartesianGrid
+                      stroke={Colors.Borders.primary}
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
                       stroke={Colors.Texts.secondary}
@@ -636,7 +683,9 @@ export function Reports() {
                     />
                     <YAxis
                       stroke={Colors.Texts.secondary}
-                      tickFormatter={(value) => formatChartCurrency(Number(value))}
+                      tickFormatter={(value) =>
+                        formatChartCurrency(Number(value))
+                      }
                       width={80}
                       domain={[0, (maximum: number) => maximum || 1]}
                     />
@@ -649,7 +698,12 @@ export function Reports() {
                       }}
                       formatter={(value) => formatCurrency(Number(value))}
                     />
-                    <Bar dataKey="revenue" name="Faturamento" maxBarSize={64} radius={[6, 6, 0, 0]}>
+                    <Bar
+                      dataKey="revenue"
+                      name="Faturamento"
+                      maxBarSize={64}
+                      radius={[6, 6, 0, 0]}
+                    >
                       {paymentData.map((payment) => (
                         <Cell key={payment.method} fill={payment.color} />
                       ))}
@@ -658,7 +712,9 @@ export function Reports() {
                         position="top"
                         fill={Colors.Texts.primary}
                         fontSize={12}
-                        formatter={(value) => formatChartCurrency(Number(value))}
+                        formatter={(value) =>
+                          formatChartCurrency(Number(value))
+                        }
                       />
                     </Bar>
                   </BarChart>
@@ -704,9 +760,17 @@ export function Reports() {
                     >
                       {STATUS_LABELS[order.status]}
                     </span>
-                    <span>{order.paymentMethod ? PAYMENT_LABELS[order.paymentMethod] : "Não informado"}</span>
-                    <strong>{formatCurrency(parseMoneyInCents(order.total) / 100)}</strong>
-                    <span title={new Date(order.createdAt).toLocaleString("pt-BR")}>
+                    <span>
+                      {order.paymentMethod
+                        ? PAYMENT_LABELS[order.paymentMethod]
+                        : "Não informado"}
+                    </span>
+                    <strong>
+                      {formatCurrency(parseMoneyInCents(order.total) / 100)}
+                    </strong>
+                    <span
+                      title={new Date(order.createdAt).toLocaleString("pt-BR")}
+                    >
                       {formatShortDate(order.createdAt)}
                     </span>
                   </div>

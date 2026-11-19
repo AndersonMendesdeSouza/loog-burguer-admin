@@ -1,3 +1,4 @@
+import { getOrderStatus, isFinishedOrder } from "../../utils/orderStatus";
 import Colors from "../../themes/Colors";
 import styles from "./Dashboard.module.css";
 import {
@@ -102,7 +103,10 @@ function parseMoneyInCents(value: string | number): number {
   return Number.isFinite(parsed) ? Math.round(parsed * 100) : 0;
 }
 
-function getSalesChartData(orders: OrderResponseDto[], range: DateRange): SalesPoint[] {
+function getSalesChartData(
+  orders: OrderResponseDto[],
+  range: DateRange,
+): SalesPoint[] {
   const hourly = range.start === range.end;
   const totals = new Map<string, number>();
   for (const order of orders) {
@@ -119,7 +123,11 @@ function getSalesChartData(orders: OrderResponseDto[], range: DateRange): SalesP
       return {
         label,
         tooltipLabel: date.toLocaleString("pt-BR", {
-          day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         }),
         value: (totals.get(String(hour)) ?? 0) / 100,
       };
@@ -129,9 +137,16 @@ function getSalesChartData(orders: OrderResponseDto[], range: DateRange): SalesP
   const points: SalesPoint[] = [];
   const start = new Date(`${range.start}T00:00:00`);
   const end = new Date(`${range.end}T00:00:00`);
-  for (const date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+  for (
+    const date = new Date(start);
+    date <= end;
+    date.setDate(date.getDate() + 1)
+  ) {
     points.push({
-      label: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      label: date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
       tooltipLabel: date.toLocaleDateString("pt-BR"),
       value: (totals.get(getDateKey(date)) ?? 0) / 100,
     });
@@ -141,15 +156,31 @@ function getSalesChartData(orders: OrderResponseDto[], range: DateRange): SalesP
 
 function formatDate(date: string | Date): { date: string; time: string } {
   const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return { date: "Sem data", time: "--:--" };
+  if (Number.isNaN(parsed.getTime()))
+    return { date: "Sem data", time: "--:--" };
   return {
-    date: parsed.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }),
-    time: parsed.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    date: parsed.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+    time: parsed.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
   };
 }
 
 function getInitials(name: string): string {
-  return name.trim().split(/\s+/).map((part) => part[0]).join("").toUpperCase().slice(0, 2) || "CL";
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "CL"
+  );
 }
 
 function formatMoney(value: string | number): string {
@@ -170,6 +201,7 @@ function getStatusInfo(status: OrderStatusEnum): {
   if (status === "OUT_FOR_DELIVERY" || status === "ON_ROUTE") {
     return { label: "EM ROTA", tone: "route" };
   }
+  if (status === "READY") return { label: "PRONTO", tone: "done" };
   if (status === "DELIVERED") return { label: "CONCLUÍDO", tone: "done" };
   if (status === "CANCELED") return { label: "CANCELADO", tone: "canceled" };
   return { label: String(status), tone: "new" };
@@ -179,7 +211,7 @@ function mapOrderToRecentSale(order: OrderResponseDto): RecentSale {
   const { date, time } = formatDate(order.createdAt);
   const statusInfo = getStatusInfo(order.status);
   const productsText = (order.items || [])
-    .map(item => `${item.quantity}x ${item.name}`)
+    .map((item) => `${item.quantity}x ${item.name}`)
     .join(", ");
 
   return {
@@ -202,7 +234,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   const value = Number(payload[0]?.value ?? 0);
   return (
     <div className={styles.tooltip}>
-      <div className={styles.tooltipTitle}>{payload[0]?.payload?.tooltipLabel ?? label}</div>
+      <div className={styles.tooltipTitle}>
+        {payload[0]?.payload?.tooltipLabel ?? label}
+      </div>
       <div className={styles.tooltipValue}>{formatMoney(value)}</div>
     </div>
   );
@@ -213,7 +247,9 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<PeriodKey | null>("week");
-  const [dateRange, setDateRange] = useState<DateRange>(() => getDateRange("week"));
+  const [dateRange, setDateRange] = useState<DateRange>(() =>
+    getDateRange("week"),
+  );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
@@ -228,11 +264,16 @@ export function Dashboard() {
       try {
         const data = await OrderService.findAll();
         if (!active) return;
-        setOrders(data);
+        setOrders(
+          data.map((order) => ({ ...order, status: getOrderStatus(order) })),
+        );
         setError(null);
       } catch (error) {
         console.error("Erro ao carregar painel:", error);
-        if (active) setError("Não foi possível carregar o painel. Tentaremos novamente em instantes.");
+        if (active)
+          setError(
+            "Não foi possível carregar o painel. Tentaremos novamente em instantes.",
+          );
       } finally {
         requestInProgress = false;
         if (active) setLoading(false);
@@ -249,26 +290,45 @@ export function Dashboard() {
   }, []);
 
   const today = getDateKey(new Date());
-  const invalidDateRange = !dateRange.start || !dateRange.end ||
-    dateRange.start > dateRange.end || dateRange.end > today;
+  const invalidDateRange =
+    !dateRange.start ||
+    !dateRange.end ||
+    dateRange.start > dateRange.end ||
+    dateRange.end > today;
 
   const filteredOrders = useMemo(() => {
     if (invalidDateRange) return [];
-    return orders.filter((order) => {
-      if (!isInsideDateRange(order, dateRange)) return false;
-      return statusFilter === "all" || getStatusInfo(order.status).tone === statusFilter;
-    }).sort((first, second) =>
-      new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime(),
-    );
+    return orders
+      .filter((order) => {
+        if (!isInsideDateRange(order, dateRange)) return false;
+        return (
+          statusFilter === "all" ||
+          getStatusInfo(order.status).tone === statusFilter
+        );
+      })
+      .sort(
+        (first, second) =>
+          new Date(second.createdAt).getTime() -
+          new Date(first.createdAt).getTime(),
+      );
   }, [orders, dateRange, statusFilter, invalidDateRange]);
 
-  const validOrders = filteredOrders.filter((order) => order.status !== OrderStatusEnum.CANCELED);
-  const revenueInCents = validOrders.reduce((total, order) => total + parseMoneyInCents(order.total), 0);
-  const chartData = invalidDateRange ? [] : getSalesChartData(filteredOrders, dateRange);
+  const validOrders = filteredOrders.filter(
+    (order) => order.status !== OrderStatusEnum.CANCELED,
+  );
+  const revenueInCents = validOrders.reduce(
+    (total, order) => total + parseMoneyInCents(order.total),
+    0,
+  );
+  const chartData = invalidDateRange
+    ? []
+    : getSalesChartData(filteredOrders, dateRange);
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const recentSales = filteredOrders.slice(startIndex, startIndex + PAGE_SIZE).map(mapOrderToRecentSale);
+  const recentSales = filteredOrders
+    .slice(startIndex, startIndex + PAGE_SIZE)
+    .map(mapOrderToRecentSale);
 
   function selectPeriod(value: PeriodKey) {
     setPeriod(value);
@@ -304,7 +364,9 @@ export function Dashboard() {
               value={dateRange.start}
               max={dateRange.end || today}
               aria-invalid={invalidDateRange}
-              aria-describedby={invalidDateRange ? "dashboard-date-error" : undefined}
+              aria-describedby={
+                invalidDateRange ? "dashboard-date-error" : undefined
+              }
               onChange={(event) => changeDateRange("start", event.target.value)}
             />
           </label>
@@ -320,7 +382,9 @@ export function Dashboard() {
               min={dateRange.start}
               max={today}
               aria-invalid={invalidDateRange}
-              aria-describedby={invalidDateRange ? "dashboard-date-error" : undefined}
+              aria-describedby={
+                invalidDateRange ? "dashboard-date-error" : undefined
+              }
               onChange={(event) => changeDateRange("end", event.target.value)}
             />
           </label>
@@ -338,7 +402,9 @@ export function Dashboard() {
               }}
             >
               {STATUS_FILTERS.map((status) => (
-                <option key={status.value} value={status.value}>{status.label}</option>
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
               ))}
             </select>
           </label>
@@ -352,24 +418,36 @@ export function Dashboard() {
       )}
 
       {loading ? (
-        <div className={styles.state} role="status">Carregando painel...</div>
+        <div className={styles.state} role="status">
+          Carregando painel...
+        </div>
       ) : error ? (
-        <div className={styles.alert} role="alert">{error}</div>
+        <div className={styles.alert} role="alert">
+          {error}
+        </div>
       ) : !invalidDateRange ? (
         <>
           <div className={styles.metrics}>
             <div className={`${styles.metricCard} ${styles.revenueCard}`}>
-              <span className={styles.metricIcon}><FiDollarSign aria-hidden="true" /></span>
+              <span className={styles.metricIcon}>
+                <FiDollarSign aria-hidden="true" />
+              </span>
               <div className={styles.metricLabel}>Faturamento total</div>
-              <div className={styles.metricValue}>{formatMoney(revenueInCents / 100)}</div>
-              <div className={styles.metricSub}>{validOrders.length} pedidos não cancelados</div>
+              <div className={styles.metricValue}>
+                {formatMoney(revenueInCents / 100)}
+              </div>
+              <div className={styles.metricSub}>
+                {validOrders.length} pedidos não cancelados
+              </div>
             </div>
             <div className={`${styles.metricCard} ${styles.ordersCard}`}>
-              <span className={styles.metricIcon}><FiShoppingBag aria-hidden="true" /></span>
+              <span className={styles.metricIcon}>
+                <FiShoppingBag aria-hidden="true" />
+              </span>
               <div className={styles.metricLabel}>Número de pedidos</div>
               <div className={styles.metricValue}>{filteredOrders.length}</div>
               <div className={styles.metricSub}>
-                {filteredOrders.filter((order) => order.status === OrderStatusEnum.DELIVERED).length} entregues
+                {filteredOrders.filter(isFinishedOrder).length} concluídos
               </div>
             </div>
           </div>
@@ -388,7 +466,11 @@ export function Dashboard() {
                 </div>
               </div>
 
-              <div className={styles.tabs} role="group" aria-label="Período de vendas">
+              <div
+                className={styles.tabs}
+                role="group"
+                aria-label="Período de vendas"
+              >
                 {PERIODS.map((item) => (
                   <button
                     key={item.key}
@@ -406,15 +488,41 @@ export function Dashboard() {
             <div className={styles.chartWrap}>
               {validOrders.length ? (
                 <ResponsiveContainer width="100%" height={260}>
-                  <AreaChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                  <AreaChart
+                    data={chartData}
+                    margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+                  >
                     <defs>
-                      <linearGradient id="fillYellow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={Colors.Highlight.primary} stopOpacity={0.28} />
-                        <stop offset="100%" stopColor={Colors.Highlight.primary} stopOpacity={0} />
+                      <linearGradient
+                        id="fillYellow"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor={Colors.Highlight.primary}
+                          stopOpacity={0.28}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor={Colors.Highlight.primary}
+                          stopOpacity={0}
+                        />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid stroke={Colors.Borders.primary} vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: Colors.Texts.secondary, fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
+                    <CartesianGrid
+                      stroke={Colors.Borders.primary}
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fill: Colors.Texts.secondary, fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      minTickGap={24}
+                    />
                     <YAxis hide domain={[0, "auto"]} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area
@@ -429,7 +537,9 @@ export function Dashboard() {
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className={styles.state}>Sem faturamento no período selecionado.</div>
+                <div className={styles.state}>
+                  Sem faturamento no período selecionado.
+                </div>
               )}
             </div>
           </div>
@@ -437,7 +547,6 @@ export function Dashboard() {
           <div className={styles.tablePanel}>
             <div className={styles.tableHeader}>
               <div className={styles.tableTitle}>Vendas recentes</div>
-
             </div>
 
             <div className={styles.table}>
@@ -451,47 +560,47 @@ export function Dashboard() {
                 <div>AÇÕES</div>
               </div>
 
-              {recentSales.length ? recentSales.map((r) => (
-                <div key={r.orderId} className={styles.row}>
-                  <div className={styles.idCell}>{r.id}</div>
+              {recentSales.length ? (
+                recentSales.map((r) => (
+                  <div key={r.orderId} className={styles.row}>
+                    <div className={styles.idCell}>{r.id}</div>
 
-                  <div className={styles.dateCell}>
-                    <div>{r.date}</div>
-                    <div className={styles.muted}>{r.time}</div>
+                    <div className={styles.dateCell}>
+                      <div>{r.date}</div>
+                      <div className={styles.muted}>{r.time}</div>
+                    </div>
+
+                    <div className={styles.clientCell}>
+                      <div className={styles.avatar}>{r.client.initials}</div>
+                      <div className={styles.clientName}>{r.clientName}</div>
+                    </div>
+
+                    <div className={styles.productsCell}>{r.products}</div>
+
+                    <div className={styles.totalCell}>{r.total}</div>
+
+                    <div>
+                      <span
+                        className={`${styles.statusPill} ${styles[`status_${r.statusTone}`]}`}
+                      >
+                        {r.statusLabel}
+                      </span>
+                    </div>
+
+                    <div className={styles.actionsCell}>
+                      <button
+                        className={styles.eyeBtn}
+                        type="button"
+                        aria-label={`Ver pedido ${r.id}`}
+                        title="Ver pedido"
+                        onClick={() => navigate(`/orders-details/${r.orderId}`)}
+                      >
+                        <FiEye />
+                      </button>
+                    </div>
                   </div>
-
-                  <div className={styles.clientCell}>
-                    <div className={styles.avatar}>{r.client.initials}</div>
-                    <div className={styles.clientName}>{r.clientName}</div>
-                  </div>
-
-                  <div className={styles.productsCell}>{r.products}</div>
-
-                  <div className={styles.totalCell}>{r.total}</div>
-
-                  <div>
-                    <span
-                      className={
-                        `${styles.statusPill} ${styles[`status_${r.statusTone}`]}`
-                      }
-                    >
-                      {r.statusLabel}
-                    </span>
-                  </div>
-
-                  <div className={styles.actionsCell}>
-                    <button
-                      className={styles.eyeBtn}
-                      type="button"
-                      aria-label={`Ver pedido ${r.id}`}
-                      title="Ver pedido"
-                      onClick={() => navigate(`/orders-details/${r.orderId}`)}
-                    >
-                      <FiEye />
-                    </button>
-                  </div>
-                </div>
-              )) : (
+                ))
+              ) : (
                 <div className={styles.state}>Nenhum pedido encontrado.</div>
               )}
             </div>
@@ -503,7 +612,10 @@ export function Dashboard() {
                   : "0 pedidos"}
               </div>
 
-              <nav className={styles.pagination} aria-label="Paginação de pedidos">
+              <nav
+                className={styles.pagination}
+                aria-label="Paginação de pedidos"
+              >
                 <button
                   className={styles.pageBtn}
                   type="button"
@@ -514,7 +626,9 @@ export function Dashboard() {
                 >
                   <FiChevronLeft />
                 </button>
-                <span className={styles.muted}>{currentPage} de {totalPages}</span>
+                <span className={styles.muted}>
+                  {currentPage} de {totalPages}
+                </span>
                 <button
                   className={styles.pageBtn}
                   type="button"
